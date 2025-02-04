@@ -1,0 +1,204 @@
+W20250129 10:55:23.368928 140294957073984 mem_hook.cpp:103] large memory alloc, query_id:9634df9f-de72-11ef-bc3b-cef86ee9eec3 instance: 9634df9f-de72-11ef-bc3b-cef86ee9eec7 acquire:2324043328 b
+ytes, stack:
+    @          0x93c9785  starrocks::get_stack_trace[abi:cxx11]()
+    @          0x921eb87  malloc
+    @          0x5d037a3  starrocks::AllocatorFactory<starrocks::Allocator, starrocks::MemHookAllocator>::checked_alloc(unsigned long)
+    @          0x5aef3e4  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+W20250129 10:55:23.760023 140294940288576 stack_util.cpp:347] 2025-01-29 10:55:23.760001, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.760143 140294940288576 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.768975 140294898325056 stack_util.cpp:347] 2025-01-29 10:55:23.768957, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.768978 140294948681280 stack_util.cpp:347] 2025-01-29 10:55:23.768962, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.769128 140294898325056 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.769128 140294948681280 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.769714 140294906717760 stack_util.cpp:347] 2025-01-29 10:55:23.769697, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.769788 140294906717760 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.470334 140294915110464 mem_hook.cpp:103] large memory alloc, query_id:9634df9f-de72-11ef-bc3b-cef86ee9eec3 instance: 9634df9f-de72-11ef-bc3b-cef86ee9eec7 acquire:1114626007 b
+ytes, stack:
+    @          0x93c9785  starrocks::get_stack_trace[abi:cxx11]()
+    @          0x921eb87  malloc
+    @          0x5d037a3  starrocks::AllocatorFactory<starrocks::Allocator, starrocks::MemHookAllocator>::checked_alloc(unsigned long)
+    @          0x5aef3e4  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+W20250129 10:55:23.779022 140294931895872 stack_util.cpp:347] 2025-01-29 10:55:23.779000, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.779141 140294931895872 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.779895 140294864754240 stack_util.cpp:347] 2025-01-29 10:55:23.779875, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+W20250129 10:55:23.779987 140294864754240 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001

@@ -1,0 +1,234 @@
+Query:
+  Summary:
+     - Query ID: 9634df9f-de72-11ef-bc3b-cef86ee9eec3
+     - Start Time: 2025-01-29 10:55:19
+     - End Time: 2025-01-29 10:55:33
+     - Total: 13s979ms
+     - Query Type: Query
+     - Query State: Error
+     - StarRocks Version: 3.4.0-e94580b
+     - User: root
+     - Default Db: hits
+     - Sql Statement: SELECT WatchID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth) FROM hits GROUP BY WatchID, ClientIP ORDER BY c DESC LIMIT 10
+     - Variables: parallel_fragment_exec_instance_num=1,max_parallel_scan_instance_num=-1,pipeline_dop=0,enable_adaptive_sink_dop=true,enable_runtime_adaptive_dop=false,runtime_profile_report_interval=10,resource_group=default_wg
+     - NonDefaultSessionVariables: {"spill_mem_limit_threshold":{"defaultValue":0.8,"actualValue":0.5},"enable_adaptive_sink_dop":{"defaultValue":false,"actualValue":true},"enable_spill":{"defaultValue":false,"actualValue":true},"enable_profile":{"defaultValue":false,"actualValue":true}}
+     - Collect Profile Time: 10s19ms
+     - IsProfileAsync: true
+  Planner:
+     - -- Parser[1] 0
+     - -- Total[1] 5ms
+     -     -- Analyzer[1] 0
+     -         -- Lock[1] 0
+     -         -- AnalyzeDatabase[1] 0
+     -         -- AnalyzeTemporaryTable[1] 0
+     -         -- AnalyzeTable[1] 0
+     -     -- Transformer[1] 0
+     -     -- Optimizer[1] 2ms
+     -         -- MVPreprocess[1] 0
+     -         -- MVTextRewrite[1] 0
+     -         -- RuleBaseOptimize[1] 1ms
+     -         -- CostBaseOptimize[1] 0
+     -         -- PhysicalRewrite[1] 0
+     -         -- DynamicRewrite[1] 0
+     -         -- PlanValidate[1] 0
+     -             -- InputDependenciesChecker[1] 0
+     -             -- TypeChecker[1] 0
+     -             -- CTEUniqueChecker[1] 0
+     -             -- ColumnReuseChecker[1] 0
+     -     -- ExecPlanBuild[1] 1ms
+     - -- Pending[1] 0
+     - -- Prepare[1] 0
+     - -- Deploy[1] 26ms
+     -     -- DeployLockInternalTime[1] 26ms
+     -         -- DeploySerializeConcurrencyTime[3] 1ms
+     -         -- DeployStageByStageTime[9] 3ms
+     -         -- DeployWaitTime[9] 20ms
+     -             -- DeployAsyncSendTime[7] 3ms
+     - DeployDataSize: 130965
+    Reason:
+  Execution:
+     - Topology: {"rootId":5,"nodes":[{"id":5,"name":"MERGE_EXCHANGE","properties":{"sinkIds":[],"displayMem":true},"children":[4]},{"id":4,"name":"TOP_N","properties":{"sinkIds":[5],"displayMem":true},"children":[3]},{"id":3,"name":"AGGREGATION","properties":{"displayMem":true},"children":[2]},{"id":2,"name":"EXCHANGE","properties":{"displayMem":true},"children":[1]},{"id":1,"name":"AGGREGATION","properties":{"sinkIds":[2],"displayMem":true},"children":[0]},{"id":0,"name":"OLAP_SCAN","properties":{"displayMem":false},"children":[]}]}
+     - FrontendProfileMergeTime: 9.104ms
+     - QueryAllocatedMemoryUsage: 210.492 KB
+     - QueryCumulativeCpuTime: 54s75ms
+     - QueryCumulativeNetworkTime: 0ns
+     - QueryCumulativeOperatorTime: 98.865us
+     - QueryCumulativeScanTime: 0ns
+     - QueryDeallocatedMemoryUsage: 45.203 KB
+     - QueryExecutionWallTime: 3s939ms
+     - QueryPeakMemoryUsagePerNode: 30.055 GB
+     - QueryPeakScheduleTime: 1.364ms
+     - QuerySpillBytes: 0.000 B
+     - QuerySumMemoryUsage: 30.055 GB
+     - ResultDeliverTime: 0ns
+    Fragment 0:
+       - BackendAddresses: kube-starrocks-be-1.kube-starrocks-be-search.default.svc.cluster.local:9060
+       - InstanceIds: 9634df9f-de72-11ef-bc3b-cef86ee9eec4
+       - BackendNum: 1
+       - BackendProfileMergeTime: 627.373us
+       - InitialProcessDriverCount: 0
+       - InitialProcessMem: 10.060 GB
+       - InstanceAllocatedMemoryUsage: 210.492 KB
+       - InstanceDeallocatedMemoryUsage: 45.203 KB
+       - InstanceNum: 1
+       - InstancePeakMemoryUsage: 165.289 KB
+       - JITCounter: 0
+       - JITTotalCostTime: 0ns
+       - QueryMemoryLimit: -1.000 B
+      Pipeline (id=1):
+         - isGroupExecution: false
+         - ActiveTime: 0ns
+         - BlockByInputEmpty: 0
+         - BlockByOutputFull: 0
+         - BlockByPrecondition: 0
+         - DegreeOfParallelism: 1
+         - DriverTotalTime: 3s938ms
+         - PeakDriverQueueSize: 46
+         - PendingTime: 3s938ms
+           - InputEmptyTime: 3s938ms
+             - FirstInputEmptyTime: 3s938ms
+         - ScheduleCount: 0
+         - TotalDegreeOfParallelism: 1
+         - YieldByLocalWait: 0
+         - YieldByPreempt: 0
+         - YieldByTimeLimit: 0
+        RESULT_SINK (plan_node_id=-1):
+          CommonMetrics:
+             - IsFinalSink
+             - OperatorTotalTime: 67.483us
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 0ns
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+          UniqueMetrics:
+             - SinkType: MYSQL_PROTOCAL
+             - AppendChunkTime: 0ns
+               - ResultRendTime: 0ns
+               - TupleConvertTime: 0ns
+             - NumSentRows: 0
+        CHUNK_ACCUMULATE (plan_node_id=-1):
+          CommonMetrics:
+             - IsSubordinate
+             - OperatorTotalTime: 1.463us
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 0ns
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+          UniqueMetrics:
+        LIMIT (plan_node_id=5) (operator id=3):
+          CommonMetrics:
+             - OperatorTotalTime: 1.834us
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 0ns
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+          UniqueMetrics:
+        LOCAL_EXCHANGE_SOURCE (plan_node_id=5):
+          CommonMetrics:
+             - IsSubordinate
+             - OperatorTotalTime: 7.531us
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 0ns
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+             - RuntimeBloomFilterNum: 0
+             - RuntimeInFilterNum: 0
+          UniqueMetrics:
+      Pipeline (id=0):
+         - isGroupExecution: false
+         - ActiveTime: 41.715us
+         - BlockByInputEmpty: 0
+         - BlockByOutputFull: 0
+         - BlockByPrecondition: 0
+         - DegreeOfParallelism: 10
+         - DriverTotalTime: 3s938ms
+         - PeakDriverQueueSize: 515
+         - PendingTime: 3s936ms
+           - InputEmptyTime: 3s936ms
+             - FirstInputEmptyTime: 393.746ms
+             - FollowupInputEmptyTime: 3s543ms
+         - ScheduleCount: 41
+         - ScheduleTime: 1.364ms
+         - TotalDegreeOfParallelism: 10
+         - YieldByLocalWait: 40
+         - YieldByPreempt: 0
+         - YieldByTimeLimit: 0
+        LOCAL_EXCHANGE_SINK (plan_node_id=5):
+          CommonMetrics:
+             - IsSubordinate
+             - OperatorTotalTime: 461ns
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 0ns
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+          UniqueMetrics:
+             - ShuffleNum: 1
+             - Type: Passthrough
+             - LocalExchangePeakMemoryUsage: 0.000 B
+        GLOBAL_PARALLEL_MERGE_SOURCE (plan_node_id=5):
+          CommonMetrics:
+             - OperatorTotalTime: 20.093us
+             - PullChunkNum: 0
+             - PullRowNum: 0
+             - PullTotalTime: 18.939us
+             - PushChunkNum: 0
+             - PushRowNum: 0
+             - PushTotalTime: 0ns
+          UniqueMetrics:
+             - LateMaterialization: False
+             - Limit: 10
+             - Offset: 0
+             - StreamingBatchSize: 163840
+             - BufferUnplugCount: 0
+             - BytesPassThrough: 0.000 B
+             - BytesReceived: 0.000 B
+             - ClosureBlockCount: 0
+             - ClosureBlockTime: 0ns
+             - DecompressChunkTime: 0ns
+             - DeserializeChunkTime: 0ns
+             - LateMaterializationMaxBufferChunkNum: 0
+             - OverallStageCount: 48
+               - 1-InitStageCount: 1
+               - 2-PrepareStageCount: 4
+               - 3-ProcessStageCount: 23
+               - 4-SplitChunkStageCount: 10
+               - 5-FetchChunkStageCount: 10
+               - 6-PendingStageCount: 0
+               - 7-FinishedStageCount: 0
+             - OverallStageTime: 13.423us
+               - 1-InitStageTime: 2.898us
+               - 2-PrepareStageTime: 1.032us
+               - 3-ProcessStageTime: 6.814us
+                 - LateMaterializationGenerateOrdinalTime: 0ns
+                 - SortedRunProviderTime: 170ns
+               - 4-SplitChunkStageTime: 616ns
+                 - LateMaterializationRestoreAccordingToOrdinalTime: 0ns
+               - 5-FetchChunkStageTime: 1.601us
+               - 6-PendingStageTime: 0ns
+               - 7-FinishedStageTime: 0ns
+             - PeakBufferMemoryBytes: 0.000 B
+             - ReceiverProcessTotalTime: 0ns
+             - RequestReceived: 0
+             - WaitLockTime: 0ns
+    Fragment 1:
+       - BackendAddresses: kube-starrocks-be-1.kube-starrocks-be-search.default.svc.cluster.local:9060,kube-starrocks-be-0.kube-starrocks-be-search.default.svc.cluster.local:9060,kube-starrocks-be-2.kube-starrocks-be-search.default.svc.cluster.local:9060
+       - InstanceIds: 9634df9f-de72-11ef-bc3b-cef86ee9eec7,9634df9f-de72-11ef-bc3b-cef86ee9eec6,9634df9f-de72-11ef-bc3b-cef86ee9eec5
+       - MissingInstanceIds: 9634df9f-de72-11ef-bc3b-cef86ee9eec7,9634df9f-de72-11ef-bc3b-cef86ee9eec6,9634df9f-de72-11ef-bc3b-cef86ee9eec5
+       - BackendNum: 3
+       - InstanceNum: 3
+    Fragment 2:
+       - BackendAddresses: kube-starrocks-be-1.kube-starrocks-be-search.default.svc.cluster.local:9060,kube-starrocks-be-0.kube-starrocks-be-search.default.svc.cluster.local:9060,kube-starrocks-be-2.kube-starrocks-be-search.default.svc.cluster.local:9060
+       - InstanceIds: 9634df9f-de72-11ef-bc3b-cef86ee9eec9,9634df9f-de72-11ef-bc3b-cef86ee9eec8,9634df9f-de72-11ef-bc3b-cef86ee9eeca
+       - MissingInstanceIds: 9634df9f-de72-11ef-bc3b-cef86ee9eec9,9634df9f-de72-11ef-bc3b-cef86ee9eec8,9634df9f-de72-11ef-bc3b-cef86ee9eeca
+       - BackendNum: 3
+       - InstanceNum: 3

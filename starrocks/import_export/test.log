@@ -1,0 +1,81 @@
+-------------
+// step 1, In impala, create external table to contain parquet data
+CREATE EXTERNAL TABLE db_log_public.xl_traffic_parquet
+STORED AS PARQUET
+LOCATION '/xl/parquet/xl_traffic_parquet'
+AS SELECT id,vd FROM db_log_public.__root_fgt_traffic LIMIT 100;
+
+-------------
+// step 2, create table in StarRocks
+-- 在 StarRocks 中创建表
+drop TABLE db_log_public.__root_fgt_traffic_starrocks;
+CREATE TABLE db_log_public.__root_fgt_traffic_starrocks (
+
+    id BIGINT NOT NULL,
+    vd STRING NOT NULL
+    
+) 
+DUPLICATE KEY(id);
+
+-------------
+// step 3, 
+insert into db_log_public.__root_fgt_traffic_starrocks (id,vd)
+SELECT id,vd FROM FILES
+(
+    "path" = "hdfs://198.18.1.10/xl/parquet/xl_traffic_parquet/964db0b898402f2b-8397d7fb0000000d_104290319_data.0.parq",
+    "format" = "parquet",
+    "hadoop.security.authentication" = "simple",
+    "username" = "root",
+    "password" = "fortinet@123"
+)
+
+
+==========
+
+Referrence:
+
+
+// try the following query, with the HDFS name node IP: 
+SELECT * FROM FILES
+(
+    "path" = "hdfs://198.18.1.10/hw_data/1341443c597adc3f-928049790000000d_1776568466_data.0.parq",
+    "format" = "parquet",
+    "hadoop.security.authentication" = "simple",
+    "username" = "root",
+    "password" = "fortinet@123"
+)
+LIMIT 3;
+// test if hdfs parquet works in SR
+SELECT * FROM FILES
+(
+    "path" = "hdfs://198.18.1.10/xl/parquet/xl_traffic_parquet/964db0b898402f2b-8397d7fb0000000d_104290319_data.0.parq",
+    "format" = "parquet",
+    "hadoop.security.authentication" = "simple",
+    "username" = "root",
+    "password" = "fortinet@123"
+)
+LIMIT 3;
+// can use wildcard star * to load multiple files
+SELECT * FROM FILES
+(
+    "path" = "hdfs://198.18.1.10/xl/parquet/xl_traffic_parquet/*",
+    "format" = "parquet",
+    "hadoop.security.authentication" = "simple",
+    "username" = "root",
+    "password" = "fortinet@123"
+)
+LIMIT 3;
+
+
+// check if the dir path is correct in hdfs 
+hdfs dfs -ls  -h /xl/parquet/xl_traffic_parquet
+
+// check with hdfs protoco
+hdfs dfs -ls -h hdfs:///xl/parquet/xl_traffic_parquet/
+
+hdfs dfs -ls  -h hdfs://cluster/dataset/parquet
+
+// try to pipe insert for large data
+// https://docs.starrocks.io/docs/loading/hdfs_load/#use-pipe
+
+

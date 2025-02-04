@@ -1,0 +1,4 @@
+kubectl exec -it kube-starrocks-fe-0 -- bash
+mysql -h kube-starrocks-fe-0.kube-starrocks-fe-search.default.svc.cluster.local -P 9030 -u root -D db_log_public
+mysql -h kube-starrocks-fe-0.kube-starrocks-fe-search.default.svc.cluster.local -P 9030 -u root -D db_log_public -e "$(cat load.sql)"
+kubectl exec -it kube-starrocks-be-0 -- bash

@@ -1,0 +1,77 @@
+Hi Casey,
+
+May I ask a question about mem_limit and spilling ?
+I’m encountering an issue with mem_limit, so I enabled spilling to try to resolve it. However, spilling still throws exceptions. Could you assist me with this?
+
+ERROR 1064 (HY000): Internal error: vector::_M_range_insert: BE:10003
+
+Thanks in advance.
+
+==================
+The following is relevant info about this query sql.
+---------------
+The query sql:
+
+mysql> SELECT WatchID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth) FROM hits GROUP BY WatchID, ClientIP ORDER BY c DESC LIMIT 10;
+ERROR 1064 (HY000): Internal error: vector::_M_range_insert: BE:10003
+
+
+---------------
+From be logs:
+
+W20250129 10:55:23.779141 140294931895872 pipeline_driver_executor.cpp:175] [Driver] Process error, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, instance_id=9634df9f-de72-11ef-bc3b-cef86ee9ee
+c7, status=Internal error: Internal error: vector::_M_range_insert: BE:10001
+W20250129 10:55:23.779895 140294864754240 stack_util.cpp:347] 2025-01-29 10:55:23.779875, query_id=9634df9f-de72-11ef-bc3b-cef86ee9eec3, fragment_instance_id=9634df9f-de72-11ef-bc3b-cef86ee9eec
+7 throws exception: std::length_error, trace:
+     @          0x93cc44e  __wrap___cxa_throw
+    @         0x10dac351  std::__throw_length_error(char const*)
+    @          0x5aef5ae  void std::vector<unsigned char, starrocks::raw::RawAllocator<unsigned char, 16ul, starrocks::ColumnAllocator<unsigned char> > >::_M_range_insert<unsigned char const*>(
+__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, starrocks::raw::R�
+    @          0x5af1ee5  starrocks::BinaryColumnBase<unsigned int>::append(starrocks::Column const&, unsigned long, unsigned long)
+    @          0x5a66c9a  starrocks::Chunk::append(starrocks::Chunk const&, unsigned long, unsigned long)
+    @          0x7d51e29  starrocks::spill::OrderedMemTable::append(std::shared_ptr<starrocks::Chunk>)
+    @          0x7ccb82c  starrocks::Status starrocks::spill::RawSpillerWriter::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeli
+ne::QueryContext>, std::weak_ptr<starrocks::spill::Spiller> >&>(starrocks::RuntimeState*,�
+    @          0x7ccdbbd  starrocks::Status starrocks::spill::Spiller::spill<starrocks::spill::IOTaskExecutor, starrocks::spill::ResourceMemTrackerGuard<std::weak_ptr<starrocks::pipeline::Query
+Context>, std::weak_ptr<starrocks::spill::Spiller> > >(starrocks::RuntimeState*, std::sha�
+    @          0x7c3f878  starrocks::Aggregator::spill_aggregate_data(starrocks::RuntimeState*, std::function<starrocks::StatusOr<std::shared_ptr<starrocks::Chunk> > ()>)
+    @          0x7d86386  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_spill_all_data(starrocks::RuntimeState*, bool)
+    @          0x7d908c2  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::_try_to_spill_by_auto(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x7d91186  starrocks::pipeline::SpillableAggregateBlockingSinkOperator::push_chunk(starrocks::RuntimeState*, std::shared_ptr<starrocks::Chunk> const&)
+    @          0x5a4d128  starrocks::pipeline::PipelineDriver::process(starrocks::RuntimeState*, int)
+    @          0x8f45853  starrocks::pipeline::GlobalDriverExecutor::_worker_thread()
+    @          0x940b973  starrocks::ThreadPool::dispatch_thread()
+    @          0x9403039  starrocks::Thread::supervise_thread(void*)
+    @     0x7f999446bac3  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x94ac2)
+    @     0x7f99944fd850  (/usr/lib/x86_64-linux-gnu/libc.so.6+0x12684f)
+
+---------------
+From query profile:
+QueryAllocatedMemoryUsage: 13.670 TB looked so large
+
+  Execution:
+     - Topology: {"rootId":5,"nodes":[{"id":5,"name":"MERGE_EXCHANGE","properties":{"sinkIds":[],"displayMem":true},"children":[4]},{"id":4,"name":"TOP_N","properties":{"sinkIds":[5],"displayMem":true},"children":[3]},{"id":3,"name":"AGGREGATION","properties":{"displayMem":true},"children":[2]},{"id":2,"name":"EXCHANGE","properties":{"displayMem":true},"children":[1]},{"id":1,"name":"AGGREGATION","properties":{"sinkIds":[2],"displayMem":true},"children":[0]},{"id":0,"name":"OLAP_SCAN","properties":{"displayMem":false},"children":[]}]}
+     - FrontendProfileMergeTime: 35.529ms
+     - QueryAllocatedMemoryUsage: 13.670 TB
+     - QueryCumulativeCpuTime: 5m42s
+     - QueryCumulativeNetworkTime: 147.701ms
+     - QueryCumulativeOperatorTime: 7s993ms
+     - QueryCumulativeScanTime: 684.564ms
+     - QueryDeallocatedMemoryUsage: 13.659 TB
+     - QueryExecutionWallTime: 11s10ms
+     - QueryPeakMemoryUsagePerNode: 33.388 GB
+     - QueryPeakScheduleTime: 1s556ms
+     - QuerySpillBytes: 0.000 B
+     - QuerySumMemoryUsage: 91.794 GB
+     - ResultDeliverTime: 0ns
+     
+-----------
+In databases dataset, the distinct count of the query groupby fields is about 1.4 B rows
+
+mysql> select count(distinct WatchID,ClientIP) from hits;
++-----------------------------------+
+| count(DISTINCT WatchID, ClientIP) |
++-----------------------------------+
+|                        1439999880 |
++-----------------------------------+
+
