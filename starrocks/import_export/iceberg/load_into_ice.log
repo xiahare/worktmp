@@ -1,3 +1,47 @@
+# 0 prepare
+## starrocks server start with native up
+## configure : starrocks minio iceberg
+## iceberg catalog
+## create bucket of "hits" (database)
+##  
+# 1 load data into starrocks native table "default_catalog.hits.hits"
+
+## create native table of "default_catalog.hits.hits"  (default catalog: default_catalog, database: hits, table name : hits)
+
+Run `click.bench/starrocks/create.sql`
+
+## load into native table , it will take about 10min-15min
+```
+nohup ./load-data.sh starrocks-ice > nohupoutput.log 2>&1 &
+```
+
+## check native table count 1440M
+```
+select count(*) from default_catalog.hits.hits;
+```
+# 2 load into iceberg table from native table
+## create iceberg table of "iceberg.hits.hits"
+```
+set catalog iceberg;
+create database hits;
+use database hits;
+<create_ice_table.sql>
+```
+## Run the script
+```
+./load_into_starrocks_ice.sh
+```
+## check iceberg table count
+```
+select count(*) from iceberg.hits.hits;
+```
+## check data size on s3
+```
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize
+```
+
+
+------------------
 mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits -e "show tables;" --init-command="SET CATALOG iceberg;use hits;"
 
 INSERT INTO iceberg.hits.hits
@@ -23,6 +67,6 @@ select count(*) , EventDate from iceberg.hits.hits group by EventDate order by E
 hdfs dfs -mkdir -p /dataset/parquet/hits
 hdfs dfs -put /data2/click.bench/data/sampledata/b2/hits_split_00_1X_1.tsv /dataset/parquet/hits/
 
- aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
+aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
 
 aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize 

@@ -1,3 +1,5 @@
+
+# This is not really extermal hdfs table -- wrong
 DROP TABLE IF EXISTS hits_ex;
 CREATE EXTERNAL TABLE hits_ex (
     CounterID INT NOT NULL, 
@@ -107,9 +109,6 @@ CREATE EXTERNAL TABLE hits_ex (
     CLID INT NOT NULL
 )
 PROPERTIES (
-    "location" = "hdfs://198.18.1.10/dataset/parquet/hits/",
-    "hadoop.security.authentication" = "simple",
-    "username" = "root",
     "password" = "fortinet@123",
     "path" = "hdfs://198.18.1.10/dataset/parquet/hits/",  
     "format" = "parquet",  

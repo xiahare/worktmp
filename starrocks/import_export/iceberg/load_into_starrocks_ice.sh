@@ -5,7 +5,10 @@ STARROCK_HOST="kube-starrocks-fe-search.service.consul"
 STARROCK_PORT=9030
 STARROCK_USER="root"
 STARROCK_PASSWORD="root"
+STARROCK_CATALOG="iceberg"
 STARROCK_DB="hits"
+STARROCK_SRCTB="default_catalog.hits.hits"
+STARROCK_DSTTB="iceberg.hits.hits"
 
 # Maximum concurrent threads
 MAX_THREADS=5
@@ -54,23 +57,22 @@ for date in "${!EVENT_DATA_COUNTS[@]}"; do
 
     echo "Processing EventDate: $date, Rows: $row_count, Batches: $num_batches (MOD(UserID, $modulo))"
 
-    # special case, MOD(-29, 5)=-4
-    echo Special case : MOD(UserID, $modulo) < 0
-    sql_query="INSERT INTO iceberg.hits.hits
-            SELECT * FROM default_catalog.hits.hits
-            WHERE MOD(UserID, $modulo) < 0 AND EventDate = '$date';"
-    mysql -vvv -h "${STARROCK_HOST}" -P "${STARROCK_PORT}" -u"${STARROCK_USER}" -p"${STARROCK_PASSWORD}" -D $STARROCK_DB -e "$sql_query"
-
     for ((i=0; i<modulo; i++)); do
+        # handle the case of MOD(a,b)<0
+        if [[ $i -eq 0 ]]; then
+            condition="<= 0"
+        else
+            condition=" = $i"
+        fi
         # Generate the SQL query for this batch
-        sql_query="INSERT INTO iceberg.hits.hits
-              SELECT * FROM default_catalog.hits.hits
-              WHERE MOD(UserID, $modulo) = $i AND EventDate = '$date';"
+        sql_query="INSERT INTO ${STARROCK_DSTTB}
+              SELECT * FROM ${STARROCK_SRCTB}
+              WHERE MOD(UserID, $modulo) $condition AND EventDate = '$date';"
         
         # Start processing the batch in the background
         (
         worker=N${SEQ_NO}
-        echo "$(date "+%Y-%m-%d %H:%M:%S") $worker : Processing batch for EventDate '$date' with MOD(UserID, $modulo) = $i"
+        echo "$(date "+%Y-%m-%d %H:%M:%S") $worker : Processing batch for EventDate '$date' with MOD(UserID, $modulo) $condition"
         
         # Start the timer for the batch
         SUB_START_TIME=$(date +%s)
@@ -85,7 +87,7 @@ for date in "${!EVENT_DATA_COUNTS[@]}"; do
             SUB_ELAPSED_TIME=$((SUB_END_TIME - SUB_START_TIME))
             echo "$(date "+%Y-%m-%d %H:%M:%S") [$worker] Batch completed in $SUB_ELAPSED_TIME seconds!"
         else
-            echo "Failed to execute batch for MOD(UserID, $modulo) = $i and EventDate='$date'."
+            echo "Failed to execute batch for MOD(UserID, $modulo) $condition and EventDate='$date'."
         fi
         ) &  # End background process
         
