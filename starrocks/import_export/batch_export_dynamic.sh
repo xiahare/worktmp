@@ -1,6 +1,5 @@
 #!/bin/bash
-# Bulk export from Kudu to Parquet with optimized dynamic batching
-# Version: 1.1 (Fixed timestamp calculation and memory issues)
+# Bulk export from Kudu to Parquet with optimized dynamic batching based on time range
 
 # ------ Configuration Section ------
 # Impala connection
@@ -13,42 +12,30 @@ TARGET_TABLE="db_log_public.dataset_fgt_traffic_parquet"
 HDFS_LOCATION="/dataset/parquet/traffic"
 
 # Batch configuration
-BATCH_SIZE=10000000  # 10 million rows per batch
 TIME_RANGE_START="2025-01-03 06:26:19"
 TIME_RANGE_END="2025-01-03 12:17:32"
+BATCH_INTERVAL=3600  # 1 hour in seconds (can be set to 1800 for 30 minutes, 600 for 10 minutes, etc.)
 
 # Resource configuration
-PARQUET_FILE_SIZE="1g"# Target Parquet file size
-
+PARQUET_FILE_SIZE="1g"  # Target Parquet file size
 
 current_start="$TIME_RANGE_START"
 batch_num=1
 
+# Record start time (epoch format)
+script_start_time=$(date +%s)
+
 while [[ "$(date -d "$current_start" +%s)" -lt "$(date -d "$TIME_RANGE_END" +%s)" ]]; do
   
-  echo "[$(date +'%F %T')] Processing Batch $batch_num | Current Start: $current_start"
+  # Calculate batch end time by adding BATCH_INTERVAL (in seconds) to current_start
+  batch_end=$(date -d "@$(($(date -d "$current_start" +%s) + $BATCH_INTERVAL))" +'%F %T')
   
-  # Step 1: Find batch end time using optimized method
-  batch_end=$(impala-shell $IMPALA_OPTS -B --quiet -q "
-    SET MEM_LIMIT=40g;
-
-    SELECT 
-      COALESCE(
-        (SELECT itime 
-         FROM $SOURCE_TABLE 
-         WHERE itime > '$current_start' 
-         ORDER BY itime 
-         LIMIT 1 OFFSET $BATCH_SIZE),
-        '$TIME_RANGE_END'
-      ) AS batch_end;
-  ")
-
-  # Fallback if empty result
-  if [ -z "$batch_end" ] || [ "$batch_end" = "NULL" ]; then
+  # Ensure batch_end does not exceed TIME_RANGE_END
+  if [[ "$(date -d "$batch_end" +%s)" -gt "$(date -d "$TIME_RANGE_END" +%s)" ]]; then
     batch_end="$TIME_RANGE_END"
   fi
 
-  echo "  Calculated Batch End: $batch_end"
+  echo "[$(date +'%F %T')] Processing Batch $batch_num | Current Start: $current_start | Batch End: $batch_end"
 
   # Step 2: Execute parallel export
   impala-shell $IMPALA_OPTS -q "
@@ -152,4 +139,10 @@ while [[ "$(date -d "$current_start" +%s)" -lt "$(date -d "$TIME_RANGE_END" +%s)
   ((batch_num++))
 done
 
-echo "[$(date +'%F %T')] Export completed. Processed $((batch_num-1)) batches."
+# Record end time
+script_end_time=$(date +%s)
+
+# Calculate total execution time
+execution_time=$((script_end_time - script_start_time))
+
+echo "[$(date +'%F %T')] Export completed. Total execution time: ${execution_time} s. Processed $((batch_num-1)) batches."

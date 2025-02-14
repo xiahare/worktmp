@@ -1,0 +1,19 @@
+DROP PIPE IF EXISTS load_into_ice_hits_from_native;
+CREATE PIPE load_into_ice_hits_from_native
+PROPERTIES
+(
+    "AUTO_INGEST" = "TRUE"
+)
+AS
+insert into iceberg.hits.hits
+select * from default_catalog.hits.hits;
+
+
+
+
+insert into hits_ex 
+select * from default_catalog.hits.hits 
+limit 2
+
+hdfs dfs -mkdir -p /dataset/parquet/hits
+hdfs dfs -put /data2/click.bench/data/sampledata/b2/hits_split_00_1X_1.tsv /dataset/parquet/hits/

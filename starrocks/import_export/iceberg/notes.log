@@ -1,0 +1,1 @@
+aws s3 cp s3://warehouse/hits/hits /data2/xl/parquet/hits --recursive

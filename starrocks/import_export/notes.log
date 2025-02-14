@@ -59,6 +59,9 @@ TIME_RANGE_START="2025-01-03 06:26:19"
 TIME_RANGE_END="2025-01-03 12:17:32"
 ```
 
+```
+impala-shell -d db_log_public -q "select count(*) from db_log_public.dataset_fgt_traffic_parquet;"
+```
 
 ## Step 3
 
@@ -66,7 +69,7 @@ TIME_RANGE_END="2025-01-03 12:17:32"
 
 ```
 nohup ./batch_export_dynamic.sh > nohupoutput.log 2>&1 &
-tail -fn 200 nohupoutput.log
+tail -fn 2000 nohupoutput.log | grep -E "Processing Batch|Modified"
 ```
 
 ## Step 4

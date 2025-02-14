@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS db_log_public.dataset_fgt_traffic_parque;
+DROP TABLE IF EXISTS db_log_public.dataset_fgt_traffic_parquet;
 CREATE EXTERNAL TABLE IF NOT EXISTS db_log_public.dataset_fgt_traffic_parquet (
   itime TIMESTAMP ,
   adomid BIGINT ,
