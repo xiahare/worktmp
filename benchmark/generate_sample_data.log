@@ -1,0 +1,7 @@
+nohup ./generateSimpleData.sh  split 3 2000000 > nohupoutput.log 2>&1 &
+nohup ./generateSimpleData.sh  split 2 2000000 > nohupoutput.log 2>&1 &
+nohup ./generateSimpleData.sh  split 1 2000000 > nohupoutput.log 2>&1 &
+
+watch "ls -lht /data/extends"
+
+find "/data/sampledata" -type f -name hits_split_*.tsv

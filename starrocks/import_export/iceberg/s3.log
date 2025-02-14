@@ -1,0 +1,5 @@
+
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize
+ aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
+
+

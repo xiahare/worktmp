@@ -1,0 +1,37 @@
+# enter mysql_sr client
+kubectl exec -it kube-starrocks-fe-0 -- bash
+kubectl exec -it kube-starrocks-be-0 -- bash
+mysql -P 9030 -h kube-starrocks-fe-search.default.svc.cluster.local. -u root
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits
+mysql -h kube-starrocks-fe-0.kube-starrocks-fe-search.default.svc.cluster.local -P 9030 -u root -D hits
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv  db_log_public
+
+docker images | grep star
+kubectl get po | grep star
+
+SHOW FRONTENDS;
+SHOW VARIABLES;
+
+# deploy
+helm uninstall starrocks
+kubectl get pvc | grep starrocks | awk '{print $1}' | xargs kubectl delete pvc
+helm install starrocks kube-starrocks-1.9.7.tgz -f config.yaml
+
+# export ports
+firewall-cmd --zone=public --add-port=18080/tcp --permanent && firewall-cmd --reload
+## starrocks
+# fe
+kubectl port-forward service/kube-starrocks-fe-service --address 0.0.0.0 8030 9030 &
+firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --permanent && firewall-cmd --reload &
+# fe be
+kubectl port-forward service/kube-starrocks-fe-service --address 0.0.0.0 8030 9030 &
+kubectl port-forward service/kube-starrocks-be-service --address 0.0.0.0 8040 9060 &
+firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --add-port=4040/tcp --add-port=8040/tcp --add-port=9060/tcp  --permanent && firewall-cmd --reload &
+
+# --init-command
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits -e "SELECT WatchID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth) FROM hits GROUP BY WatchID, ClientIP ORDER BY c DESC LIMIT 10" --init-command="SET exec_mem_limit=31474836480; SET query_mem_limit=31474836480;"
+
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits -e "show tables;" --init-command="SET CATALOG iceberg;use hits;"
+
+# iceberg catalog (need to create bucket for databases manually on minio-iceberg object store site)
+SET CATALOG iceberg;

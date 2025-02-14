@@ -1,0 +1,23 @@
+
+docker exec -it click-bench-nginx /bin/bash
+
+chmod 777 /var/lib/clickhouse
+
+sudo clickhouse start
+
+clickhouse-client
+
+
+/etc/clickhouse-server
+/fazbd/k8s/core/database/clickhouse/config.yaml
+
+SELECT name, value
+FROM system.settings
+WHERE name LIKE '%async%';
+
+SELECT 
+    uniqExact(CounterID, EventDate, UserID, EventTime, WatchID) AS unique_row_count 
+FROM hits;
+
+# query options in ch-client
+clickhouse-client --user admin --password iWwHZflJg3j69j5T --host ch-clickhouse.service.consul --time --max_memory_usage="10G" --query "INSERT INTO hits FORMAT TSV" < /data/sampledata/b6/hits_split_49_3X_1.tsv 2>&1 

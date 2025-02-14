@@ -1,0 +1,52 @@
+
+# backup click.bench:results config
+rsync -av /data2/click.bench/results root@10.106.50.99:/root/clickbench_backup101_4/
+rsync -av /data2/click.bench/reports root@10.106.50.99:/root/clickbench_backup101_4/
+rsync -av /data2/click.bench/config root@10.106.50.99:/root/xltemp/clickbench_backup101_4/
+
+rsync -av /data2/click.bench/results /data2/backup_click.bench/
+rsync -av /data2/click.bench/reports /data2/backup_click.bench/
+rsync -av /data2/click.bench/config /data2/backup_click.bench/
+
+# kubectl docker copy
+kubectl cp index.html.tmpl click-bench-nginx:/main/index.html.tmpl
+docker cp click-bench-nginx:/main/nohupoutput.log /data2/click.bench/minio-loaddata.log
+
+# scp generateSimpleData scripts between blades
+scp root@blade-198-18-1-2:/data2/xl/tmp/generateSimpleData.sh /data2/click.bench/data/
+scp /data2/click.bench/data/generateSimpleData.sh root@blade-198-18-1-5:/data2/click.bench/data/
+
+# rsync config to other blades
+rsync -av /data2/click.bench/config/ root@blade-198-18-1-3:/data2/click.bench/config/
+rsync -av /data2/click.bench/config/ root@blade-198-18-1-4:/data2/click.bench/config/
+rsync -av /data2/click.bench/config/ root@blade-198-18-1-5:/data2/click.bench/config/
+rsync -av /data2/click.bench/config/ root@blade-198-18-1-6:/data2/click.bench/config/
+
+# rsync dataset to other blades
+rsync -av root@blade-198-18-1-2:/data2/click.bench/data/extends/ /data2/sampledata
+rsync -av root@blade-198-18-1-2:/data2/click.bench/data/sampledata /data2/click.bench/data/
+rsync -av root@blade-198-18-1-4:/data2/click.bench/data/extends/ /data2/sampledata/b4/
+rsync -av root@blade-198-18-1-5:/data2/click.bench/data/extends/ /data2/sampledata/b5/
+rsync -av root@blade-198-18-1-6:/data2/click.bench/data/extends/ /data2/sampledata/b6/
+
+# rsync large dataset
+rsync -av root@root@10.105.101.4:/data2/sampledata /data2/
+
+# rsync blade dataset
+rsync -av root@root@10.105.101.4:/data2/sampledata/b2/ root@blade-198-18-1-2:/data2/click.bench/data/extends/
+rsync -av root@root@10.105.101.4:/data2/sampledata/b3/ root@blade-198-18-1-3:/data2/click.bench/data/extends/
+rsync -av root@root@10.105.101.4:/data2/sampledata/b4/ root@blade-198-18-1-4:/data2/click.bench/data/extends/
+rsync -av root@root@10.105.101.4:/data2/sampledata/b5/ root@blade-198-18-1-5:/data2/click.bench/data/extends/
+rsync -av root@root@10.105.101.4:/data2/sampledata/b6/ root@blade-198-18-1-6:/data2/click.bench/data/extends/
+
+# rsync config to other blades with deleting
+rsync -arv --delete /data2/click.bench/config/ root@blade-198-18-1-3:/data2/click.bench/config/
+rsync -arv --delete /data2/click.bench/config/ root@blade-198-18-1-4:/data2/click.bench/config/
+rsync -arv --delete /data2/click.bench/config/ root@blade-198-18-1-5:/data2/click.bench/config/
+rsync -arv --delete /data2/click.bench/config/ root@blade-198-18-1-6:/data2/click.bench/config/
+
+# rsync click.bench codes to build on 50.99 with delete and exclude
+rsync -av --delete --exclude="data/" /Users/lei/projs/platform/click.bench root@10.106.50.99:/root/xltemp/
+
+
+

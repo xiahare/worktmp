@@ -1,0 +1,63 @@
+
+# enter containers
+docker exec -it click-bench-nginx /bin/bash
+docker exec -it click-bench-starrocks /bin/bash
+docker exec -it click-bench-impala-kudu /bin/bash
+
+
+# check images or containers
+docker images | grep bench
+docker ps -a | grep bench
+
+# re-deploy containers
+docker rm -f click-bench-nginx 
+docker run --name click-bench-nginx -d --net=host --dns=198.18.128.3 -v /data2/click.bench/reports:/var/www/html -v /data2/click.bench/data:/data -v /data2/click.bench/results:/main/results -v /data2/click.bench/config:/config -v /data2/click.bench/tmp:/var/lib/clickhouse click-bench-nginx
+
+docker rm -f click-bench-starrocks
+docker run --name click-bench-starrocks -d -it --net=host --dns=198.18.128.3 -v /data2/click.bench/reports:/var/www/html -v /data2/click.bench/data:/data -v /data2/click.bench/results:/main/results -v /data2/click.bench/config:/config click-bench-starrocks
+
+docker rm -f click-bench-impala-kudu 
+docker run --name click-bench-impala-kudu -d -it --net=host --dns=198.18.128.3 -v /data2/click.bench/reports:/var/www/html -v /data2/click.bench/data:/data -v /data2/click.bench/results:/main/results -v /data2/click.bench/config:/config click-bench-impala-kudu
+
+# build images
+docker build -t click-bench-nginx .
+docker build -f Dockerfile-starrocks -t click-bench-starrocks .
+docker build -f Dockerfile-impala-kudu -t click-bench-impala-kudu .
+
+## push/pull images
+# need to login ECR first
+sshpass -p Fazbd2021! ssh lab@172.30.42.155 'aws ecr get-login --no-include-email --region us-west-1'
+
+# push main
+docker tag click-bench-nginx:latest 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:latest
+docker push 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:latest
+# pull main
+docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:latest
+docker tag 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:latest click-bench-nginx:latest
+
+# push click-bench-impala-kudu
+docker tag click-bench-starrocks:latest 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:starrocks
+docker push 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:starrocks
+# pull click-bench-impala-kudu
+docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:starrocks
+docker tag 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:starrocks click-bench-starrocks:latest
+
+
+# push click-bench-impala-kudu
+docker tag click-bench-impala-kudu:latest 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:impalakudu
+docker push 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:impalakudu
+# pull click-bench-impala-kudu
+docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:impalakudu
+docker tag 353941098768.dkr.ecr.us-west-1.amazonaws.com/thirdparty/clickbench:impalakudu click-bench-impala-kudu:latest
+
+
+# export ports
+firewall-cmd --zone=public --add-port=18080/tcp --permanent && firewall-cmd --reload
+## starrocks
+# fe
+kubectl port-forward service/kube-starrocks-fe-service --address 0.0.0.0 8030 9030 &
+firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --permanent && firewall-cmd --reload &
+# fe be
+kubectl port-forward service/kube-starrocks-fe-service --address 0.0.0.0 8030 9030 &
+kubectl port-forward service/kube-starrocks-be-service --address 0.0.0.0 8040 9060 &
+firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --add-port=4040/tcp --add-port=8040/tcp --add-port=9060/tcp  --permanent && firewall-cmd --reload &

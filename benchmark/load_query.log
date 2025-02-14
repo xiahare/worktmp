@@ -1,0 +1,14 @@
+
+# enter containers
+docker exec -it click-bench-nginx /bin/bash
+docker exec -it click-bench-starrocks /bin/bash
+docker exec -it click-bench-impala-kudu /bin/bash
+
+# load
+nohup ./load-data.sh starrocks-large-r3 extends > nohupoutput.log 2>&1 &
+# load+query
+nohup ./benchmark.sh impala-large > nohupoutput.log 2>&1 &
+
+# print output
+tail -fn 200 nohupoutput.log
+
