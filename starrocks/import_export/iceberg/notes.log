@@ -1,1 +1,76 @@
-aws s3 cp s3://warehouse/hits/hits /data2/xl/parquet/hits --recursive
+
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize
+
+mysql -vvv -h "kube-starrocks-fe-search.service.consul" -P "9030" -u"root" -p"root" -D -e "INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits"
+
+SELECT 'less',count(*) FROM default_catalog.hits.hits
+              WHERE MOD(UserID, 15) < 0 AND EventDate = '2013-07-09')
+       union all
+SELECT 'default',count(*) FROM default_catalog.hits.hits
+              WHERE EventDate = '2013-07-09'
+       union all
+SELECT 'iceberg',count(*) FROM iceberg.hits.hits
+              WHERE EventDate = '2013-07-09';
+
+
+
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 7) < 0 AND EventDate = '2013-07-02';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 18) < 0 AND EventDate = '2013-07-03';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 7) < 0 AND EventDate = '2013-07-05';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 10) < 0 AND EventDate = '2013-07-06';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 2) < 0 AND EventDate = '2013-07-07';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 2) < 0 AND EventDate = '2013-07-08';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 16) < 0 AND EventDate = '2013-07-09';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 10) < 0 AND EventDate = '2013-07-10';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 26) < 0 AND EventDate = '2013-07-15';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 1) < 0 AND EventDate = '2013-07-20';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 24) < 0 AND EventDate = '2013-07-21';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 2) < 0 AND EventDate = '2013-07-22';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 2) < 0 AND EventDate = '2013-07-23';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 10) < 0 AND EventDate = '2013-07-28';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 9) < 0 AND EventDate = '2013-07-29';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 1) < 0 AND EventDate = '2013-07-30';
+INSERT INTO iceberg.hits.hits SELECT * FROM default_catalog.hits.hits WHERE MOD(UserID, 6) < 0 AND EventDate = '2013-07-31';
+
+
+select sum(cnt) from
+(
+SELECT '2013-07-02', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 7) < 0 AND EventDate = '2013-07-02') union all 
+SELECT '2013-07-03', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 18) < 0 AND EventDate = '2013-07-03') union all 
+SELECT '2013-07-05', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 7) < 0 AND EventDate = '2013-07-05') union all 
+SELECT '2013-07-06', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-06') union all 
+SELECT '2013-07-07', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-07') union all 
+SELECT '2013-07-08', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-08') union all 
+SELECT '2013-07-09', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 16) < 0 AND EventDate = '2013-07-09') union all 
+SELECT '2013-07-10', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-10') union all 
+SELECT '2013-07-15', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 26) < 0 AND EventDate = '2013-07-15') union all 
+SELECT '2013-07-20', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 1) < 0 AND EventDate = '2013-07-20') union all 
+SELECT '2013-07-21', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 24) < 0 AND EventDate = '2013-07-21') union all 
+SELECT '2013-07-22', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-22') union all 
+SELECT '2013-07-23', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-23') union all 
+SELECT '2013-07-28', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-28') union all 
+SELECT '2013-07-29', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 9) < 0 AND EventDate = '2013-07-29') union all 
+SELECT '2013-07-30', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 1) < 0 AND EventDate = '2013-07-30') union all 
+SELECT '2013-07-31', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 6) < 0 AND EventDate = '2013-07-31')
+) t;
+
+select * from
+(
+SELECT '2013-07-02', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 7) < 0 AND EventDate = '2013-07-02') union all 
+SELECT '2013-07-03', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 18) < 0 AND EventDate = '2013-07-03') union all 
+SELECT '2013-07-05', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 7) < 0 AND EventDate = '2013-07-05') union all 
+SELECT '2013-07-06', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-06') union all 
+SELECT '2013-07-07', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-07') union all 
+SELECT '2013-07-08', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-08') union all 
+SELECT '2013-07-09', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 16) < 0 AND EventDate = '2013-07-09') union all 
+SELECT '2013-07-10', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-10') union all 
+SELECT '2013-07-15', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 26) < 0 AND EventDate = '2013-07-15') union all 
+SELECT '2013-07-20', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 1) < 0 AND EventDate = '2013-07-20') union all 
+SELECT '2013-07-21', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 24) < 0 AND EventDate = '2013-07-21') union all 
+SELECT '2013-07-22', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-22') union all 
+SELECT '2013-07-23', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 2) < 0 AND EventDate = '2013-07-23') union all 
+SELECT '2013-07-28', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 10) < 0 AND EventDate = '2013-07-28') union all 
+SELECT '2013-07-29', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 9) < 0 AND EventDate = '2013-07-29') union all 
+SELECT '2013-07-30', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 1) < 0 AND EventDate = '2013-07-30') union all 
+SELECT '2013-07-31', count(*) as cnt FROM default_catalog.hits.hits WHERE (MOD(UserID, 6) < 0 AND EventDate = '2013-07-31')
+) t order by 1;

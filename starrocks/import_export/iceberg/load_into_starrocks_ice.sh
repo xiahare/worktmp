@@ -54,6 +54,13 @@ for date in "${!EVENT_DATA_COUNTS[@]}"; do
 
     echo "Processing EventDate: $date, Rows: $row_count, Batches: $num_batches (MOD(UserID, $modulo))"
 
+    # special case, MOD(-29, 5)=-4
+    echo Special case : MOD(UserID, $modulo) < 0
+    sql_query="INSERT INTO iceberg.hits.hits
+            SELECT * FROM default_catalog.hits.hits
+            WHERE MOD(UserID, $modulo) < 0 AND EventDate = '$date';"
+    mysql -vvv -h "${STARROCK_HOST}" -P "${STARROCK_PORT}" -u"${STARROCK_USER}" -p"${STARROCK_PASSWORD}" -D $STARROCK_DB -e "$sql_query"
+
     for ((i=0; i<modulo; i++)); do
         # Generate the SQL query for this batch
         sql_query="INSERT INTO iceberg.hits.hits

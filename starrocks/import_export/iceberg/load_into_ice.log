@@ -1,19 +1,28 @@
-DROP PIPE IF EXISTS load_into_ice_hits_from_native;
-CREATE PIPE load_into_ice_hits_from_native
-PROPERTIES
-(
-    "AUTO_INGEST" = "TRUE"
-)
-AS
-insert into iceberg.hits.hits
-select * from default_catalog.hits.hits;
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits -e "show tables;" --init-command="SET CATALOG iceberg;use hits;"
 
+INSERT INTO iceberg.hits.hits
+SELECT * FROM default_catalog.hits.hits LIMIT 20000000;
 
+INSERT INTO iceberg.hits.hits
+SELECT * FROM default_catalog.hits.hits
+where mod(userid, 5)=0 and EventDate='2013-07-31';
 
+INSERT INTO iceberg.hits.hits
+SELECT * FROM default_catalog.hits.hits
+where mod(userid, 5)=0 and EventDate='2013-07-31';
 
-insert into hits_ex 
-select * from default_catalog.hits.hits 
-limit 2
+SELECT * FROM default_catalog.hits.hits
+
+select count(*) from iceberg.hits.hits;
+
+select count(*) from default_catalog.hits.hits;
+
+select count(*) , EventDate from default_catalog.hits.hits group by EventDate order by EventDate;
+select count(*) , EventDate from iceberg.hits.hits group by EventDate order by EventDate;
 
 hdfs dfs -mkdir -p /dataset/parquet/hits
 hdfs dfs -put /data2/click.bench/data/sampledata/b2/hits_split_00_1X_1.tsv /dataset/parquet/hits/
+
+ aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
+
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize 
