@@ -1,0 +1,12 @@
+-------------------------------
+__root_facet_result_nopart
+real	0m0.125s
+real	0m0.294s
+-------------------------------
+__root_facet_result_parted
+real	0m1.137s
+real	0m1.773s
+-------------------------------
+__root_facet_result_rmrowno
+real	0m0.266s
+real	0m0.799s

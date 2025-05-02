@@ -1,3 +1,6 @@
+set catalog iceberg;
+create database IF NOT EXISTS hits;
+use hits;
 DROP TABLE IF EXISTS hits;
 CREATE TABLE hits (
     CounterID INT NOT NULL, 

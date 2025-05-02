@@ -1,0 +1,89 @@
+To be fixed:
+1. Unexpected packet from server ch-clickhouse-shard4-1.ch-clickhouse-headless.db.svc.cluster.local:9000 (expected TablesStatusResponse, got Progress): While executing Remote. (UNEXPECTED_PACKET_FROM_SERVER) (version 24.8.12.28)
+Unexpected packet from server ch-clickhouse-shard0-1.ch-clickhouse-headless.db.svc.cluster.local:9000 (expected TablesStatusResponse, got Hello): While executing Remote. (UNEXPECTED_PACKET_FROM_SERVER) (version 24.8.12.28) 
+Unexpected packet from server ch-clickhouse-shard12-1.ch-clickhouse-headless.db.svc.cluster.local:9000 (expected TablesStatusResponse, got Unknown packet): While executing Remote. (UNEXPECTED_PACKET_FROM_SERVER) (version 24.8.12.28)
+2. [1143104] some siem field valuses missing
+
+3. [1143624] SIEM: "Data UID" is missing in log details for SIEM logs.
+4. [1140868] Cannot convert NULL value to non-Nullable type: while executing 'FUNCTION CAST(divide(sum(__table2.bandwidth), 24_UInt8) :: 9, 'decimal(18, 0)'_String :: 8) -> CAST(divide(sum(__table2.bandwidth), 24_UInt8), 'decimal(18, 0)'_String) Decimal(18, 0) : 7'. (CANNOT_INSERT_NULL_IN_ORDINARY_COLUMN) (version 24.8.12.28)
+5. [1140883]Aggregate function sum(sessions) AS sessions is found inside another aggregate function in query. (ILLEGAL_AGGREGATION) (version 24.8.12.28)
+6. [1145110] Missing columns:'$fv_plhd_timescale' Cannot load time zone $fv_timezone. (BAD_ARGUMENTS) (version 24.8.12.28)
+7. Scheduled reports facets status were still ondemand
+
+
+in b1375,
+... formatDateTime(ts_itime(`itime`), '%Y-%m-%d', 'Unknown') as dom ... 
+Fixed:
+8. Logview query, Inet4Address Class is not registered 
+9. [1141407]In Clickhouse v24.8.12.28, the siem logview slow issue;
+10. ipstr() udf issues
+
+
+Others:
+SQL [select * from (/*SIEM-FV*/ select * from $ADOMTBL_PLHD_ADDROBJ limit 0) t limit 0]; Code: 60. DB::Exception: Table db_log_public.`$ADOMTBL_PLHD_ADDROBJ` does not exist.
+select min() improvement
+select dom as active_date, sum(sessions) as sessions from ###(select $DAY_OF_MONTH as dom, count(*) as sessions from $log-siem where $filter and (bitAnd(logflag,1)>0) group by dom order by sessions desc)### t group by active_date order by sessions desc
+
+
+
+
+
+
+
+
+[1140868]
+FUNCTION CAST Cannot convert NULL value to non-Nullable type: while executing 'FUNCTION CAST(divide(sum(__table2.bandwidth'
+[1140883]
+Aggregate function sum(sessions) AS sessions is found inside another aggregate function in query. 
+set prefer_column_name_to_alias = 1
+FortiManager/server/cooked/clickhouse/clickhouse-server/
+
+__priv_adom3
+
+
+SELECT sum(net_sentbytes)
+FROM `__priv_adom3`
+WHERE 1 = 2
+
+
+SELECT CAST(sum(net_sentbytes), 'Decimal(18, 0)')
+FROM `__priv_adom3`
+WHERE 1 = 2
+
+
+
+
+SELECT sum(net_sentbytes) as net_sentbytes
+FROM `__priv_adom3`
+having
+  sum(net_sentbytes)>0 ;
+
+
+SELECT sum(net_sentbytes) as net_sentbytes
+FROM `3_siem_siem`
+having
+  sum(net_sentbytes)>0 
+order by net_sentbytes;
+  
+  SELECT sum(net_sentbytes) as net_sentbytes2
+FROM `3_siem_siem`
+having
+  sum(net_sentbytes)>0 ;
+
+SELECT sum(net_sentbytes) as net_sentbytes
+FROM `__priv_adom3`
+having
+  sum(net_sentbytes)>0 
+order by net_sentbytes;
+
+SELECT sum(net_sentbytes) as net_sentbytes
+FROM `__priv_adom3`
+having
+  sum(net_sentbytes)>0 
+order by sum(net_sentbytes);
+
+select `itime` as pk__itime,`id` as pk__id FROM `db_log_public`.`__root_siem_siem_distributed` WHERE (`itime` >= '2025-03-25 16:52:37') and (`itime` < '2025-03-25 16:52:42') and adomid = 3 ORDER BY `itime` desc limit 5;
+
+select `itime` as pk__itime,`id` as pk__id FROM `db_log_public`.`__root_siem_siem_view` WHERE (`itime` >= '2025-03-25 16:52:37') and (`itime` < '2025-03-25 16:52:42') and adomid = 3 ORDER BY `itime` limit 5;
+
+select `itime` as pk__itime,`id` as pk__id FROM `db_log_public`.`3_siem_siem` WHERE (`itime` >= '2025-03-25 16:52:37') and (`itime` < '2025-03-25 16:52:42') and adomid = 3 ORDER BY `itime` desc limit 5;

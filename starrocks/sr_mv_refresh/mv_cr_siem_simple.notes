@@ -1,0 +1,13 @@
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sample`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sample` (`adomid`, `itime`, `src_ip`, `logcnt`)
+PARTITION BY (date_trunc('hour', `itime`))
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC 
+PROPERTIES (
+"replicated_storage" = "true",
+"replication_num" = "1",
+"storage_medium" = "HDD"
+)
+AS SELECT base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `itime`, base.`src_ip`, count(*) AS `logcnt`
+FROM `xl_siem_tbl_sample` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;

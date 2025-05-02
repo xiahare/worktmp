@@ -1,0 +1,5 @@
+set time_zone="America/Los_Angeles";
+select unix_timestamp();
+set time_zone="UTC";
+select unix_timestamp();
+

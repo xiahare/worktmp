@@ -61,3 +61,5 @@ firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9
 kubectl port-forward service/kube-starrocks-fe-service --address 0.0.0.0 8030 9030 &
 kubectl port-forward service/kube-starrocks-be-service --address 0.0.0.0 8040 9060 &
 firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --add-port=4040/tcp --add-port=8040/tcp --add-port=9060/tcp  --permanent && firewall-cmd --reload &
+
+

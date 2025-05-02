@@ -7,8 +7,14 @@
 # 1 load data into starrocks native table "default_catalog.hits.hits"
 
 ## create native table of "default_catalog.hits.hits"  (default catalog: default_catalog, database: hits, table name : hits)
+ 
+Run the ddl if `click.bench/starrocks/create.sql` in mysql client
 
-Run `click.bench/starrocks/create.sql`
+In the docker container of `click-bench-starrocks`
+```
+docker exec -it click-bench-starrocks /bin/bash
+mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hits -e "$(cat create.sql)"
+```
 
 ## load into native table , it will take about 10min-15min
 ```
@@ -21,15 +27,16 @@ select count(*) from default_catalog.hits.hits;
 ```
 # 2 load into iceberg table from native table
 ## create iceberg table of "iceberg.hits.hits"
+
 ```
-set catalog iceberg;
-create database hits;
-use database hits;
+
 <create_ice_table.sql>
 ```
 ## Run the script
 ```
-./load_into_starrocks_ice.sh
+docker exec -it click-bench-starrocks /bin/bash
+<copy the script of load_into_starrocks_ice.sh into current dir>
+nohup ./load_into_starrocks_ice.sh > nohupoutput.log 2>&1 &
 ```
 ## check iceberg table count
 ```
@@ -64,9 +71,12 @@ select count(*) from default_catalog.hits.hits;
 select count(*) , EventDate from default_catalog.hits.hits group by EventDate order by EventDate;
 select count(*) , EventDate from iceberg.hits.hits group by EventDate order by EventDate;
 
+SELECT SUM(DATA_LENGTH) AS total_bytes FROM iceberg.information_schema.tables WHERE  TABLE_SCHEMA = 'hits' GROUP BY TABLE_SCHEMA;
+SELECT SUM(DATA_LENGTH) AS total_bytes FROM default_catalog.information_schema.tables WHERE  TABLE_SCHEMA = 'hits' GROUP BY TABLE_SCHEMA;
+
+
 hdfs dfs -mkdir -p /dataset/parquet/hits
 hdfs dfs -put /data2/click.bench/data/sampledata/b2/hits_split_00_1X_1.tsv /dataset/parquet/hits/
 
-aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
 
-aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize 
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://ice/warehouse/hits --recursive --human-readable --summarize

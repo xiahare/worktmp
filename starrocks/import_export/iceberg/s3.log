@@ -1,5 +1,14 @@
 
-aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/ --recursive --human-readable --summarize
-aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
+aws s3 ls --endpoint-url http://minio.service.consul:9000 s3://ice/warehouse/hits --recursive --human-readable --summarize
+aws s3 rm --endpoint-url http://minio.service.consul:9000 s3://ice/warehouse/hits --recursive
+aws s3 cp --endpoint-url http://minio.service.consul:9000 s3://ice/warehouse/hits/hits/data/fb484536-ea77-11ef-bcbf-86499e7041d8_0_9_0.parquet .
 
 
+http://10.105.101.212:1013/jobs/ fazbd/fortinet@123
+
+MINIO http://10.105.101.212:9001/ rootuser/rootpass123
+
+new VM env
+ssh admin@10.106.2.70
+exec shell
+pw is admin/admin
