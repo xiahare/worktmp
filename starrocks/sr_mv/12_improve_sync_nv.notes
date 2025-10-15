@@ -1,0 +1,461 @@
+ALTER TABLE __root_siem_siem
+SWAP WITH __xl_siem_siem_tbl;
+
+-- rename 
+ALTER MATERIALIZED VIEW __root_siem_siem_5min_mv RENAME __root_siem_siem_5min_mv_async;
+
+-- create siem sync mv
+DROP MATERIALIZED VIEW IF EXISTS he_xl_siem_siem_5min_mv_sync_agg_states_all;
+CREATE MATERIALIZED VIEW IF NOT EXISTS he_xl_siem_siem_5min_mv_sync_agg_states_all
+AS SELECT adomid, time_slice(`itime`, INTERVAL 5 minute, floor) AS itime, src_ip, dst_ip, data_sourceid, epid, euid, data_sourcetype, coalesce(split(' ', coalesce(`data_sourcename`, ''))[-1], 'root') AS `d_source_vdom`, event_action, event_id, event_severity, event_policy, host_name, if(`event_type` IN ('utm'), `event_subtype`, `event_type`) AS `d_event_type`, event_cat, dst_domain, http_referer, app_name, app_cat, app_proc, app_service, file_name, file_hash, threat_name, threat_type, threat_action, threat_pattern, count(id) AS logcnt, array_agg_union(array_agg_state(`id`)) AS loguids, sum(CAST((if((`logflag` & 1) > 0, 1, 0)) AS BIGINT)) AS sessions, sum(CAST((if((`logflag` & 2) > 0, 1, 0)) AS BIGINT)) AS session_block, sum(net_sentbytes) AS net_sentbytes_sum, min(net_sentbytes) AS net_sentbytes_min, max(net_sentbytes) AS net_sentbytes_max, avg_union(avg_state(net_sentbytes)) AS net_sentbytes_avg, sum(net_recvbytes) AS net_recvbytes_sum, min(net_recvbytes) AS net_recvbytes_min, max(net_recvbytes) AS net_recvbytes_max, avg_union(avg_state(net_recvbytes)) AS net_recvbytes_avg, sum(net_sentpkts) AS net_sentpkts_sum, min(net_sentpkts) AS net_sentpkts_min, max(net_sentpkts) AS net_sentpkts_max, avg_union(avg_state(net_sentpkts)) AS net_sentpkts_avg, sum(net_rcvdpkts) AS net_rcvdpkts_sum, min(net_rcvdpkts) AS net_rcvdpkts_min, max(net_rcvdpkts) AS net_rcvdpkts_max, avg_union(avg_state(net_rcvdpkts)) AS net_rcvdpkts_avg, min(net_sessionduration) AS net_sessionduration_min, max(net_sessionduration) AS net_sessionduration_max, avg_union(avg_state(net_sessionduration)) AS net_sessionduration_avg, sum(threat_score) AS threat_score_sum 
+FROM __root_siem_siem
+GROUP BY adomid, time_slice(`itime`, INTERVAL 5 minute, floor), src_ip, dst_ip, data_sourceid, epid, euid, data_sourcetype, d_source_vdom, event_action, event_id, event_severity, event_policy, host_name, d_event_type, event_cat, dst_domain, http_referer, app_name, app_cat, app_proc, app_service, file_name, file_hash, threat_name, threat_type, threat_action, threat_pattern;
+
+-- improved siem sync mv (remove avg) 
+DROP MATERIALIZED VIEW IF EXISTS he_xl_siem_siem_5min_mv_sync_agg_states_all;
+CREATE MATERIALIZED VIEW IF NOT EXISTS he_xl_siem_siem_5min_mv_sync_agg_states_all AS
+SELECT
+    adomid,
+    time_slice(`itime`, INTERVAL 5 minute, floor) AS itime,
+    src_ip,
+    dst_ip,
+    data_sourceid,
+    epid,
+    euid,
+    data_sourcetype,
+    COALESCE(SPLIT(' ', COALESCE(`data_sourcename`, ''))[-1], 'root') AS d_source_vdom,
+    event_action,
+    event_id,
+    event_severity,
+    event_policy,
+    host_name,
+    IF(`event_type` IN ('utm'), `event_subtype`, `event_type`) AS d_event_type,
+    event_cat,
+    dst_domain,
+    http_referer,
+    app_name,
+    app_cat,
+    app_proc,
+    app_service,
+    file_name,
+    file_hash,
+    threat_name,
+    threat_type,
+    threat_action,
+    threat_pattern,
+
+    -- merge columns
+    COUNT(id) AS logcnt,
+    array_agg_union(array_agg_state(`id`)) AS loguids,
+
+    SUM(CAST((IF((`logflag` & 1) > 0, 1, 0)) AS BIGINT)) AS sessions,
+    SUM(CAST((IF((`logflag` & 2) > 0, 1, 0)) AS BIGINT)) AS session_block,
+
+    SUM(net_sentbytes) AS net_sentbytes_sum,
+    MIN(net_sentbytes) AS net_sentbytes_min,
+    MAX(net_sentbytes) AS net_sentbytes_max,
+
+    SUM(net_recvbytes) AS net_recvbytes_sum,
+    MIN(net_recvbytes) AS net_recvbytes_min,
+    MAX(net_recvbytes) AS net_recvbytes_max,
+
+    SUM(net_sentpkts) AS net_sentpkts_sum,
+    MIN(net_sentpkts) AS net_sentpkts_min,
+    MAX(net_sentpkts) AS net_sentpkts_max,
+
+    SUM(net_rcvdpkts) AS net_rcvdpkts_sum,
+    MIN(net_rcvdpkts) AS net_rcvdpkts_min,
+    MAX(net_rcvdpkts) AS net_rcvdpkts_max,
+
+    MIN(net_sessionduration) AS net_sessionduration_min,
+    MAX(net_sessionduration) AS net_sessionduration_max,
+    SUM(net_sessionduration) AS net_sessionduration_sum,
+
+    SUM(threat_score) AS threat_score_sum
+
+FROM
+    __root_siem_siem
+
+GROUP BY
+    adomid,
+    time_slice(`itime`, INTERVAL 5 minute, floor),
+    src_ip,
+    dst_ip,
+    data_sourceid,
+    epid,
+    euid,
+    data_sourcetype,
+    d_source_vdom,
+    event_action,
+    event_id,
+    event_severity,
+    event_policy,
+    host_name,
+    d_event_type,
+    event_cat,
+    dst_domain,
+    http_referer,
+    app_name,
+    app_cat,
+    app_proc,
+    app_service,
+    file_name,
+    file_hash,
+    threat_name,
+    threat_type,
+    threat_action,
+    threat_pattern;
+
+-- create view __root_siem_siem_5min_mv
+drop view __root_siem_siem_5min_mv;
+CREATE VIEW __root_siem_siem_5min_mv AS
+SELECT
+  adomid,
+  mv_itime AS itime,
+  src_ip,
+  dst_ip,
+  data_sourceid,
+  epid,
+  euid,
+  data_sourcetype,
+  mv_d_source_vdom AS d_source_vdom,
+  event_action,
+  event_id,
+  event_severity,
+  event_policy,
+  host_name,
+  mv_d_event_type AS d_event_type,
+  event_cat,
+  dst_domain,
+  http_referer,
+  app_name,
+  app_cat,
+  app_proc,
+  app_service,
+  file_name,
+  file_hash,
+  threat_name,
+  threat_type,
+  threat_action,
+  threat_pattern,
+
+  -- agg merge
+  mv_count_id AS logcnt,
+  mv_loguids.col1 AS loguids,
+  mv_sessions AS sessions,
+  mv_session_block AS session_block,
+
+  -- net_sentbytes
+  mv_sum_net_sentbytes AS net_sentbytes_sum,
+  mv_min_net_sentbytes AS net_sentbytes_min,
+  mv_max_net_sentbytes AS net_sentbytes_max,
+  mv_sum_net_sentbytes/mv_count_id AS net_sentbytes_avg,
+
+  -- net_recvbytes
+  mv_sum_net_recvbytes AS net_recvbytes_sum,
+  mv_min_net_recvbytes AS net_recvbytes_min,
+  mv_max_net_recvbytes AS net_recvbytes_max,
+  mv_sum_net_sentbytes/mv_count_id AS net_recvbytes_avg,
+
+  -- net_sentpkts
+  mv_sum_net_sentpkts AS net_sentpkts_sum,
+  mv_min_net_sentpkts AS net_sentpkts_min,
+  mv_max_net_sentpkts AS net_sentpkts_max,
+  mv_sum_net_sentpkts/mv_count_id AS net_sentpkts_avg,
+
+  -- net_rcvdpkts
+  mv_sum_net_rcvdpkts AS net_rcvdpkts_sum,
+  mv_min_net_rcvdpkts AS net_rcvdpkts_min,
+  mv_max_net_rcvdpkts AS net_rcvdpkts_max,
+  mv_sum_net_rcvdpkts/mv_count_id AS net_rcvdpkts_avg,
+
+  -- session duration
+  mv_min_net_sessionduration AS net_sessionduration_min,
+  mv_max_net_sessionduration AS net_sessionduration_max,
+  mv_sum_net_sessionduration as net_sessionduration_sum,
+  mv_sum_net_sessionduration/mv_count_id AS net_sessionduration_avg,
+
+  -- threat score
+  mv_sum_threat_score AS threat_score_sum
+
+FROM
+  he_xl_siem_siem_5min_mv_sync_agg_states_all [_SYNC_MV_];
+  
+-- create view __root_siem_siem_5min_mv (no sum/count)
+drop view __root_siem_siem_5min_mv;
+CREATE VIEW __root_siem_siem_5min_mv AS
+SELECT
+  adomid,
+  mv_itime AS itime,
+  src_ip,
+  dst_ip,
+  data_sourceid,
+  epid,
+  euid,
+  data_sourcetype,
+  mv_d_source_vdom AS d_source_vdom,
+  event_action,
+  event_id,
+  event_severity,
+  event_policy,
+  host_name,
+  mv_d_event_type AS d_event_type,
+  event_cat,
+  dst_domain,
+  http_referer,
+  app_name,
+  app_cat,
+  app_proc,
+  app_service,
+  file_name,
+  file_hash,
+  threat_name,
+  threat_type,
+  threat_action,
+  threat_pattern,
+
+  -- agg merge
+  mv_count_id AS logcnt,
+  mv_loguids.col1 AS loguids,
+  mv_sessions AS sessions,
+  mv_session_block AS session_block,
+
+  -- net_sentbytes
+  mv_sum_net_sentbytes AS net_sentbytes_sum,
+  mv_min_net_sentbytes AS net_sentbytes_min,
+  mv_max_net_sentbytes AS net_sentbytes_max,
+  mv_sum_net_sentbytes AS net_sentbytes_avg,
+
+  -- net_recvbytes
+  mv_sum_net_recvbytes AS net_recvbytes_sum,
+  mv_min_net_recvbytes AS net_recvbytes_min,
+  mv_max_net_recvbytes AS net_recvbytes_max,
+  mv_sum_net_sentbytes AS net_recvbytes_avg,
+
+  -- net_sentpkts
+  mv_sum_net_sentpkts AS net_sentpkts_sum,
+  mv_min_net_sentpkts AS net_sentpkts_min,
+  mv_max_net_sentpkts AS net_sentpkts_max,
+  mv_sum_net_sentpkts AS net_sentpkts_avg,
+
+  -- net_rcvdpkts
+  mv_sum_net_rcvdpkts AS net_rcvdpkts_sum,
+  mv_min_net_rcvdpkts AS net_rcvdpkts_min,
+  mv_max_net_rcvdpkts AS net_rcvdpkts_max,
+  mv_sum_net_rcvdpkts AS net_rcvdpkts_avg,
+
+  -- session duration
+  mv_min_net_sessionduration AS net_sessionduration_min,
+  mv_max_net_sessionduration AS net_sessionduration_max,
+  mv_sum_net_sessionduration AS net_sessionduration_avg,
+  mv_sum_net_sessionduration AS net_sessionduration_sum,
+
+  -- threat score
+  mv_sum_threat_score AS threat_score_sum
+
+FROM
+  he_xl_siem_siem_5min_mv_sync_agg_states_all [_SYNC_MV_];
+ 
+
+-- view adom3_sifv_5min
+DROP VIEW adom3_sifv_5min;
+CREATE VIEW `adom3_sifv_5min` AS
+SELECT
+    adomid,
+    itime,
+    src_ip,
+    dst_ip,
+    data_sourceid,
+    epid,
+    euid,
+    data_sourcetype,
+    d_source_vdom,
+    event_action,
+    event_id,
+    event_severity,
+    event_policy,
+    host_name,
+    d_event_type,
+    event_cat,
+    dst_domain,
+    http_referer,
+    app_name,
+    app_cat,
+    app_proc,
+    app_service,
+    file_name,
+    file_hash,
+    threat_name,
+    threat_type,
+    threat_action,
+    threat_pattern,
+    logcnt,
+    loguids,
+    sessions,
+    session_block,
+    net_sentbytes_sum,
+    net_sentbytes_min,
+    net_sentbytes_max,
+    net_sentbytes_avg,
+    net_recvbytes_sum,
+    net_recvbytes_min,
+    net_recvbytes_max,
+    net_recvbytes_avg,
+    net_sentpkts_sum,
+    net_sentpkts_min,
+    net_sentpkts_max,
+    net_sentpkts_avg,
+    net_rcvdpkts_sum,
+    net_rcvdpkts_min,
+    net_rcvdpkts_max,
+    net_rcvdpkts_avg,
+    net_sessionduration_min,
+    net_sessionduration_max,
+    net_sessionduration_avg,
+    net_sessionduration_sum,
+    threat_score_sum
+FROM __root_siem_siem_5min_mv
+WHERE adomid = 3;
+
+
+-- test perf SQL
+-- good one
+explain
+SELECT *
+FROM (
+    SELECT
+        threat_name,
+        SUM(logcnt) AS logcnt,
+        (SUM(logcnt) * 100) / (
+            SELECT SUM(logcnt)
+            FROM (
+                SELECT 3 AS adom_oid, *
+                FROM adom3_sifv_5min
+            ) AS tt
+            WHERE itime >= FROM_UNIXTIME(1747267920)
+              AND itime <= FROM_UNIXTIME(1747278720)
+        ) AS perc,
+        SUM(sessions) AS sessions,
+        SUM(session_block) AS session_block,
+        SUM(threat_score_sum) AS threat_score_sum,
+        SUM(net_sentbytes_sum) AS net_sentbytes_sum,
+        MIN(net_sentbytes_min) AS net_sentbytes_min,
+        MAX(net_sentbytes_max) AS net_sentbytes_max,
+        sum(net_sentbytes_sum)/SUM(logcnt) AS net_sentbytes_avg,
+        -- AVG(net_sentbytes_avg) AS net_sentbytes_avg,
+        MIN(net_sessionduration_min) AS net_sessionduration_min,
+        MAX(net_sessionduration_max) AS net_sessionduration_max,
+        sum(net_sessionduration_sum)/SUM(logcnt) AS net_sessionduration_avg
+        -- AVG(net_sessionduration_avg) AS net_sessionduration_avg
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747267920)
+      AND itime <= FROM_UNIXTIME(1747278720)
+    GROUP BY threat_name
+    ORDER BY logcnt DESC
+    LIMIT 500
+) t;
+
+-- bad one
+explain
+SELECT *
+FROM (
+    SELECT
+        threat_name,
+        SUM(logcnt) AS logcnt,
+        (SUM(logcnt) * 100) / (
+            SELECT SUM(logcnt)
+            FROM (
+                SELECT 3 AS adom_oid, *
+                FROM adom3_sifv_5min
+            ) AS tt
+            WHERE itime >= FROM_UNIXTIME(1747267920)
+              AND itime <= FROM_UNIXTIME(1747278720)
+        ) AS perc,
+        SUM(sessions) AS sessions,
+        SUM(session_block) AS session_block,
+        SUM(threat_score_sum) AS threat_score_sum,
+        SUM(net_sentbytes_sum) AS net_sentbytes_sum,
+        MIN(net_sentbytes_min) AS net_sentbytes_min,
+        MAX(net_sentbytes_max) AS net_sentbytes_max,
+       	AVG(net_sentbytes_avg) AS net_sentbytes_avg,
+        MIN(net_sessionduration_min) AS net_sessionduration_min,
+        MAX(net_sessionduration_max) AS net_sessionduration_max,
+        AVG(net_sessionduration_avg) AS net_sessionduration_avg
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747267920)
+      AND itime <= FROM_UNIXTIME(1747278720)
+    GROUP BY threat_name
+    ORDER BY logcnt DESC
+    LIMIT 500
+) t;
+
+
+-- Check
+SHOW ALTER MATERIALIZED VIEW\G
+desc __root_siem_siem all;
+select * from __root_siem_siem_5min_mv limit 2;
+select count(*) from __root_siem_siem_5min_mv;
+
+
+
+Updated for Starrocks MVs,
+
+Implemented siem_5min_mv_sync and integrated it into the GUI.
+However, query performance was poor — the siem_5min_mv_sync approach resulted in significantly slow queries, and even triggered memory exceeded errors in some cases.
+
+Investigated and figured out some reasons.
+1. Common view need to remove group by. Then it cannot support some "_merge()" functions if no "group by clause", need to remove such as avg_merge().
+2. The query would be very slow if query plan shows "Pre-aggregate off".  Too many reasons would lead to "Pre-aggregate off". 
+3. There seems a bug for aggregate state performance (https://github.com/StarRocks/starrocks/pull/58558) from Starrocks Supports.
+
+Later, need more performance test. and there still many details to improve or find workarounds.
+
+--- one workaround sample to change
+SELECT *
+FROM (
+    SELECT
+        threat_name,
+        SUM(logcnt) AS logcnt,
+        (SUM(logcnt) * 100) / (
+            SELECT SUM(logcnt)
+            FROM (
+                SELECT 3 AS adom_oid, *
+                FROM adom3_sifv_5min
+            ) AS tt
+            WHERE itime >= FROM_UNIXTIME(1747267920)
+              AND itime <= FROM_UNIXTIME(1747278720)
+        ) AS perc,
+        SUM(sessions) AS sessions,
+        SUM(session_block) AS session_block,
+        SUM(threat_score_sum) AS threat_score_sum,
+        SUM(net_sentbytes_sum) AS net_sentbytes_sum,
+        MIN(net_sentbytes_min) AS net_sentbytes_min,
+        MAX(net_sentbytes_max) AS net_sentbytes_max,
+        sum(net_sentbytes_sum)/SUM(logcnt) AS net_sentbytes_avg,    // ***
+        -- AVG(net_sentbytes_avg) AS net_sentbytes_avg,             // change here to the above line
+        MIN(net_sessionduration_min) AS net_sessionduration_min,
+        MAX(net_sessionduration_max) AS net_sessionduration_max,    
+        sum(net_sessionduration_sum)/SUM(logcnt) AS net_sessionduration_avg  // ***
+        -- AVG(net_sessionduration_avg) AS net_sessionduration_avg  // change here to the above line
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747267920)
+      AND itime <= FROM_UNIXTIME(1747278720)
+    GROUP BY threat_name
+    ORDER BY logcnt DESC
+    LIMIT 500
+) t;
+
+
+
+
+
+

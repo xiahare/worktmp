@@ -1,0 +1,62 @@
+
+-- insert 1 day data : START ("2025-05-05") END ("2025-05-06")
+INSERT INTO xl_siem_tbl_tp
+WITH sliced AS (
+    SELECT *,
+           time_slice(itime, INTERVAL 5 MINUTE, FLOOR) AS itime_slice,
+           ROW_NUMBER() OVER (
+               PARTITION BY time_slice(itime, INTERVAL 5 MINUTE, FLOOR)
+               ORDER BY RAND()
+           ) AS rn
+    FROM __root_siem_siem
+    WHERE itime >= '2025-05-05'
+      AND itime < '2025-05-06'
+      AND adomid IS NOT NULL
+      AND itime IS NOT NULL
+      AND id IS NOT NULL
+      AND src_ip IS NOT NULL
+)
+SELECT
+    adomid,
+    itime,
+    id,
+    src_ip
+FROM sliced
+WHERE rn <= 10;
+
+
+
+
+-- insert 1 day data : START ("2025-05-05") END ("2025-05-06")
+INSERT INTO xl_siem_tbl_tp
+TEMPORARY PARTITION (
+    tp2025050500, tp2025050501, tp2025050502, tp2025050503,
+    tp2025050504, tp2025050505, tp2025050506, tp2025050507,
+    tp2025050508, tp2025050509, tp2025050510, tp2025050511,
+    tp2025050512, tp2025050513, tp2025050514, tp2025050515,
+    tp2025050516, tp2025050517, tp2025050518, tp2025050519,
+    tp2025050520, tp2025050521, tp2025050522, tp2025050523
+)
+WITH sliced AS (
+    SELECT *,
+           time_slice(itime, INTERVAL 5 MINUTE, FLOOR) AS itime_slice,
+           ROW_NUMBER() OVER (
+               PARTITION BY time_slice(itime, INTERVAL 5 MINUTE, FLOOR)
+               ORDER BY RAND()
+           ) AS rn
+    FROM __root_siem_siem
+    WHERE itime >= '2025-05-05'
+      AND itime < '2025-05-06'
+      AND adomid IS NOT NULL
+      AND itime IS NOT NULL
+      AND id IS NOT NULL
+      AND src_ip IS NOT NULL
+)
+SELECT
+    adomid,
+    itime,
+    id,
+    src_ip
+FROM sliced
+WHERE rn <= 10;
+

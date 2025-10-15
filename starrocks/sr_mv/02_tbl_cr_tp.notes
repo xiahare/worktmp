@@ -1,0 +1,70 @@
+-- fact tbl 
+DROP TABLE IF EXISTS `xl_siem_tbl_tp`;
+CREATE TABLE IF NOT EXISTS `xl_siem_tbl_tp` (
+  `adomid` bigint(20) NOT NULL COMMENT "",
+  `itime` datetime NOT NULL COMMENT "",
+  `id` largeint(40) NOT NULL COMMENT "",
+  `src_ip` varchar(45) NOT NULL COMMENT ""
+) ENGINE=OLAP
+DUPLICATE KEY(`adomid`, `itime`, `id`)
+PARTITION BY time_slice(base.`itime`, INTERVAL 8 hour)
+DISTRIBUTED BY HASH(`adomid`, `id`)
+ORDER BY(`itime`, `adomid`, `id`)
+PROPERTIES (
+"compression" = "LZ4",
+"fast_schema_evolution" = "false",
+"replicated_storage" = "true",
+"replication_num" = "1"
+);
+
+-- mv 5min
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_tp`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_tp` (`adomid`, `itime`, `src_ip`, `logcnt`)
+PARTITION BY date_trunc('hour', `itime`)
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC EVERY (INTERVAL 5 MINUTE)
+PROPERTIES (
+"replicated_storage" = "true",
+"replication_num" = "1",
+"storage_medium" = "HDD"
+)
+AS SELECT base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `itime`, base.`src_ip`, count(*) AS `logcnt`
+FROM `xl_siem_tbl_tp` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;
+
+
+-- add temp partitions 
+-- NOTES: The granularity of the auto-partitioned table granularity(hour) should be consistent with the increased partition granularity(DAY).
+ALTER TABLE  `xl_siem_tbl_tp` 
+ADD TEMPORARY PARTITIONS START ("2025-05-05") END ("2025-05-06") EVERY (INTERVAL 1 day);
+
+
+-- show temp partitions
+SHOW TEMPORARY PARTITIONS FROM  `xl_siem_tbl_tp` ORDER BY `Range`;
+
+
+-- Drop temp partitions ;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050500;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050501;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050502;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050503;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050504;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050505;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050506;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050507;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050508;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050509;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050510;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050511;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050512;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050513;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050514;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050515;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050516;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050517;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050518;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050519;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050520;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050521;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050522;
+ALTER TABLE xl_siem_tbl_tp DROP TEMPORARY PARTITION IF EXISTS tp2025050523;

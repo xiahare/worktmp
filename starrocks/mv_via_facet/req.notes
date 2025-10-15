@@ -1,0 +1,43 @@
+1. support pre-define facets (conf in bd side, init/sync when schedule-check or manually, mark which are bd-defined[cannot be modified by api] or others)
+2. can query from facet_name(MV name)
+     e.g.
+        select sum(sessions) from traffic_src_dst_mv
+        --> 
+        select sum(sessions) from ( 
+            select ... from __root_facet_result where hash_id=xxx and start_time ...
+            UNION
+            select ... from __root_fgt_traffic where hash_id=xxx and start_time ...
+            UNION
+            ...
+
+        ) traffic_src_dst_mv
+
+        considering fuzzy=true or false
+3. support: from source
+   Re-define tag /* base */ or something
+4. consider how to adjust 
+10min/2hour/8hour
+-->
+5min/hour/day
+
+--------
+improve :
+
+1. make-up priority:the newest queried unrolled facets were the highest prioriry
+2. split facet_result table to diff levels, such as, diff interval 5min/hour/day and base/normal
+3. String types: IP , enum
+
+--------
+rewriter:
+1. replace native functions
+2. recognize udf functions or placeholder
+
+Replace avg with sum/count
+/*SIEM-FV*/ select * from (SELECT threat_action, countMerge(logcnt) AS logcnt, (logcnt * 100) / ( SELECT countMerge(logcnt) FROM (SELECT 3 AS adom_oid, * FROM adom3_sifv_5min) AS tt WHERE itime >= 1747331280 and itime <= 1747334880 ) AS perc, sumMerge(sessions) AS sessions, sumMerge(session_block) AS session_block, sumMerge(threat_score_sum) AS threat_score_sum, sumMerge(net_sentbytes_sum) AS net_sentbytes_sum, minMerge(net_sentbytes_min) AS net_sentbytes_min, maxMerge(net_sentbytes_max) AS net_sentbytes_max, avgMerge(net_sentbytes_avg) AS net_sentbytes_avg, minMerge(net_sessionduration_min) AS net_sessionduration_min, maxMerge(net_sessionduration_max) AS net_sessionduration_max, avgMerge(net_sessionduration_avg) AS net_sessionduration_avg FROM (SELECT 3 AS adom_oid, * FROM adom3_sifv_5min) AS t WHERE itime >= 1747331280 and itime <= 1747334880 GROUP BY threat_action order by logcnt desc limit 500 ) t
+
+Fix ambiguous column issue (e.g. itime)
+/*SIEM-FV*/ select * from (SELECT toInt32(itime) as itime, logcnt FROM (SELECT itime FROM (SELECT toStartOfFiveMinute(toDateTime(1747331280 + (300 * number), 'US/Pacific')) AS itime FROM numbers(2000) ) AS t WHERE (itime >= 1747331280) AND (itime <= 1747334880) ORDER BY itime ASC) AS t1 LEFT JOIN (SELECT toInt32(itime) as itime, countMerge(logcnt) AS logcnt FROM (SELECT 3 AS adom_oid, * FROM adom3_sifv_5min) AS t WHERE itime >= 1747331280 and itime <= 1747334880 GROUP BY itime order by itime limit 1000 ) AS t2 USING (itime) limit 1000000) t
+
+max/min before casting
+/*SIEM-FV*/ select * from (SELECT min(toInt32(itime)) AS itime_min, max(toInt32(itime)) AS itime_max, countMerge(logcnt) AS logcnt, uniqCombined(16)(data_sourceid) AS uc_data_sourceid, uniqCombined(16)(epid) AS uc_epid, uniqCombined(16)(euid) AS uc_euid, uniqCombined(16)(event_id) AS uc_event_id, uniqCombined(16)(event_action) AS uc_event_action, uniqCombined(16)(src_ip) AS uc_src_ip, uniqCombined(16)(dst_ip) AS uc_dst_ip, uniqCombined(16)(dst_domain) AS uc_dst_domain, uniqCombined(16)(http_referer) AS uc_http_referer, uniqCombined(16)(app_service) AS uc_app_service, uniqCombined(16)(app_name) AS uc_app_name, uniqCombined(16)(app_proc) AS uc_app_proc, uniqCombined(16)(file_name) AS uc_file_name, uniqCombined(16)(file_hash) AS uc_file_hash, uniqCombined(16)(threat_type) AS uc_threat_type, uniqCombined(16)(threat_name) AS uc_threat_name, uniqCombined(16)(threat_pattern) AS uc_threat_pattern, uniqCombined(16)(threat_action) AS uc_threat_action FROM (SELECT 3 AS adom_oid, * FROM adom3_sifv_5min) AS t WHERE itime >= 1745427060 and itime <= 1745430660  limit 1000 ) t
+

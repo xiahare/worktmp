@@ -1,0 +1,11 @@
+    <dependency>
+      <groupId>com.fortidata</groupId>
+      <artifactId>clickhouse.sql.rewriter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+String clickhouseSql = "SELECT toDateTime(date_time) FROM db.table";
+StarRocksSqlBuilder sr = new StarRocksSqlBuilder(true);
+String starRocksSql = sr.getStarRocksSql(clickhouseSql);
+System.out.println(starRocksSql);
+

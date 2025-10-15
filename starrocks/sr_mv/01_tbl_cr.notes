@@ -1,0 +1,34 @@
+
+-- fact tbl 
+DROP TABLE IF EXISTS `xl_siem_tbl_sample`;
+CREATE TABLE IF NOT EXISTS `xl_siem_tbl_sample` (
+  `adomid` bigint(20) NOT NULL COMMENT "",
+  `itime` datetime NOT NULL COMMENT "",
+  `id` largeint(40) NOT NULL COMMENT "",
+  `src_ip` varchar(45) NOT NULL COMMENT ""
+) ENGINE=OLAP
+DUPLICATE KEY(`adomid`, `itime`, `id`)
+PARTITION BY date_trunc('day', `itime`)
+DISTRIBUTED BY HASH(`adomid`, `id`)
+ORDER BY(`itime`, `adomid`, `id`)
+PROPERTIES (
+"compression" = "LZ4",
+"fast_schema_evolution" = "false",
+"replicated_storage" = "true",
+"replication_num" = "1"
+);
+
+-- mv 5min
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sample`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sample` (`adomid`, `itime`, `src_ip`, `logcnt`)
+PARTITION BY date_trunc('hour', `itime`)
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC EVERY (INTERVAL 5 MINUTE)
+PROPERTIES (
+"replicated_storage" = "true",
+"replication_num" = "1",
+"storage_medium" = "HDD"
+)
+AS SELECT base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `itime`, base.`src_ip`, count(*) AS `logcnt`
+FROM `xl_siem_tbl_sample` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;

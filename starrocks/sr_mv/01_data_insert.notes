@@ -1,0 +1,50 @@
+
+-- insert last 2 hour data
+INSERT INTO xl_siem_tbl_sample
+WITH sliced AS (
+    SELECT *,
+           time_slice(itime, INTERVAL 5 MINUTE, FLOOR) AS itime_slice,
+           ROW_NUMBER() OVER (
+               PARTITION BY time_slice(itime, INTERVAL 5 MINUTE, FLOOR)
+               ORDER BY RAND()
+           ) AS rn
+    FROM __root_siem_siem
+    WHERE itime >= NOW() - INTERVAL 2 HOUR
+      AND itime < NOW()
+      AND adomid IS NOT NULL
+      AND itime IS NOT NULL
+      AND id IS NOT NULL
+      AND src_ip IS NOT NULL
+)
+SELECT
+    adomid,
+    itime,
+    id,
+    src_ip
+FROM sliced
+WHERE rn <= 10;
+
+-- insert last 5 minutes data
+INSERT INTO xl_siem_tbl_sample
+WITH sliced AS (
+    SELECT *,
+           time_slice(itime, INTERVAL 5 MINUTE, FLOOR) AS itime_slice,
+           ROW_NUMBER() OVER (
+               PARTITION BY time_slice(itime, INTERVAL 5 MINUTE, FLOOR)
+               ORDER BY RAND()
+           ) AS rn
+    FROM __root_siem_siem
+    WHERE itime >= NOW() - INTERVAL 2 minute
+      AND itime < NOW()
+      AND adomid IS NOT NULL
+      AND itime IS NOT NULL
+      AND id IS NOT NULL
+      AND src_ip IS NOT NULL
+)
+SELECT
+    adomid,
+    itime,
+    id,
+    src_ip
+FROM sliced
+WHERE rn <= 10;

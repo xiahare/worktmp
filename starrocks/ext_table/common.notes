@@ -1,0 +1,28 @@
+-- === on 101.4 (docker starrocks env)
+-- start starrocks server via docker
+docker run -p 9030:9030 -p 8030:8030 -p 8040:8040 -itd --name test-starrocks starrocks/allin1-ubuntu
+firewall-cmd --zone=public  --add-port=4040/tcp --add-port=8030/tcp --add-port=9030/tcp --permanent && firewall-cmd --reload &
+
+-- create database
+docker exec -it test-starrocks mysql -P 9030 -h 127.0.0.1 -u root --prompt="StarRocks > "
+create database db_log_public;
+
+-- start starrocks client from container
+docker exec -it test-starrocks mysql -P 9030 -h 127.0.0.1 -u root --prompt="StarRocks > " -A db_log_public --raw
+
+-- create original table: create_tbl.sql
+
+
+-- === on 2.70 (k3s starrocks env)
+-- k3s env start client
+kubectl exec -it kube-starrocks-fe-1 -n db -- mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public --raw
+
+-- create ext table: create_ext_tbl.sql
+
+-- insert data
+INSERT INTO ext_root_fgt_traffic
+SELECT * FROM __root_fgt_traffic
+LIMIT 10;
+
+-- check data
+select count(*) from ext_root_fgt_traffic;

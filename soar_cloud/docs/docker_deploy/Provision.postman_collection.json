@@ -1,0 +1,580 @@
+{
+	"info": {
+		"_postman_id": "56b202bc-1bb9-45e4-87aa-8a543811c482",
+		"name": "Provision",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1285343"
+	},
+	"item": [
+		{
+			"name": "get portal for tenant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"tenant1_token\", jsonData.portal_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tenantid\": 1090529,\n    \"tenantuuid\": \"4655e737-9938-4473-8ec7-2655dc8c70da\",\n    \"deploymentid\": \"1\",\n    \"username\": \"XFabric\",\n    \"email\": \"xfabric@fortinet.com\",\n    \"url\": \"https://localhost:8181\",\n    \"role\": \"Admin\"\n}"
+				},
+				"url": {
+					"raw": "https://xf.test.fortisoar.forticloud.com/api/cplane/v1/tenants/dev-get-tenant-deployment-access-url/",
+					"protocol": "https",
+					"host": [
+						"xf",
+						"test",
+						"fortisoar",
+						"forticloud",
+						"com"
+					],
+					"path": [
+						"api",
+						"cplane",
+						"v1",
+						"tenants",
+						"dev-get-tenant-deployment-access-url",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"authHeader\", jsonData.access);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{tenant1_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"portal_token\": \"{{tenant1_token}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/auth/login/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "verify token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"tenantUsername\", jsonData.username);",
+							"postman.setEnvironmentVariable(\"tenantId\", jsonData.tenantid);",
+							"postman.setEnvironmentVariable(\"tenantUUID\", jsonData.tenantuuid);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"{{authHeader}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/auth/token/verify/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"token",
+						"verify",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "workflow provision",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/workflow/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"workflow",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "integration provision",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/integration/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"integration",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "appmanager",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\",\n    \"apps\": [\"automation\", \"tip\", \"faz\"]\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/appmanager/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"appmanager",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "audit",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/audit/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"audit",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "store",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/store/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"store",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "tip",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authHeader}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "published",
+						"value": "true"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "csrftoken=GhW7nzhOyZJGWi4vdV9mYB77buy2XqIo"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"{{type}}\",\n    \"regionid\": \"{{regionid}}\",\n    \"license_serial\": \"{{license_serial}}\",\n    \"company\": \"{{company}}\",\n    \"deployment_name\": \"{{deployment_name}}\",\n    \"hostname\": \"{{host}}\",\n    \"tenantuuid\": \"{{tenantUUID}}\",\n    \"tenantid\": \"{{tenantId}}\",\n    \"deploymentid\": \"{{deploymentid}}\",\n    \"username\": \"{{tenantUsername}}\",\n    \"email\": \"{{tenantUsername}}\",\n    \"url\": \"{{url}}\",\n    \"role\": \"{{role}}\"\n}"
+				},
+				"url": {
+					"raw": "https://{{host}}/api/store/tenants/provision/",
+					"protocol": "https",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"api",
+						"store",
+						"tenants",
+						"provision",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,156 @@
+-- check if columns exist
+SELECT
+   itime,
+   devid,
+   adomid,
+   0 AS devlogtype,
+   epid,
+   euid,
+   dstepid,
+   dsteuid,
+   dstip,
+   srcip,
+   id,
+   user,
+   unauthuser,
+   app,
+   service,
+   filename,
+   hostname,
+   null as keyword,
+   null as subject,
+   fctuid
+From __root_fgt_app_ctrl limit 1
+union all
+SELECT
+   itime,
+   devid,
+   adomid,
+   4 AS devlogtype,
+   epid,
+   euid,
+   dstepid,
+   dsteuid,
+   dstip,
+   srcip,
+   id,
+   user,
+   unauthuser,
+   NULL as app,
+   service,
+   filename,
+   hostname,
+   keyword,
+   null as subject,
+   fctuid
+From __root_fgt_webfilter limit 1
+union all
+SELECT
+   itime,
+   devid,
+   adomid,
+   13 AS devlogtype,
+   epid,
+   euid,
+   dstepid,
+   dsteuid,
+   dstip,
+   srcip,
+   id,
+   user,
+   unauthuser,
+   NULL as app,
+   service,
+   filename,
+   null as hostname,
+   null as keyword,
+   subject,
+   fctuid
+From __root_fgt_emailfilter limit 1;
+
+-- check whole Query
+SELECT itime,
+       devid,
+       adomid,
+       id as loguid,
+       devlogtype,
+       epid,
+       euid,
+       dstepid,
+       dsteuid,
+       srcip,
+       dstip,
+       application as app,
+       f_user,
+       avatar,
+       match_result as keywords,
+       match_result as category,
+       host_name,
+       inspected_data
+       FROM (
+           SELECT
+               itime,
+               devid,
+               adomid,
+               id,
+               0 AS devlogtype,
+               epid,
+               euid,
+               dstepid,
+               dsteuid,
+               dstip,
+               srcip,
+               '' AS avatar,
+               coalesce(nullifna(user), nullifna(unauthuser), ipstr(srcip)) AS f_user,
+               app as application,
+               hostname as host_name,
+               filename AS inspected_data,
+               filename AS match_result
+          FROM __root_fgt_app_ctrl
+          WHERE filename IS NOT NULL 
+          UNION ALL
+           SELECT
+               itime,
+               devid,
+               adomid,
+               id,
+               4 AS devlogtype,
+               epid,
+               euid,
+               dstepid,
+               dsteuid,
+               dstip,
+               srcip,
+               '' AS avatar,
+               coalesce(nullifna(user), nullifna(unauthuser), ipstr(srcip)) AS f_user,
+               service as application,
+               NULL as host_name,
+               subject AS inspected_data,
+               subject AS match_result
+          FROM __root_fgt_emailfilter
+          WHERE subject IS NOT NULL
+          UNION ALL
+           SELECT
+               itime,
+               devid,
+               adomid,
+               id,
+               13 AS devlogtype,
+               epid,
+               euid,
+               dstepid,
+               dsteuid,
+               dstip,
+               srcip,
+               '' AS avatar,
+               coalesce(nullifna(user), nullifna(unauthuser), ipstr(srcip)) AS f_user,
+               service as application,
+               hostname as host_name,
+               keyword AS inspected_data,
+               keyword AS match_result
+          FROM __root_fgt_webfilter
+          WHERE keyword IS NOT NULL 
+
+        ) ds_fgt_u_safeguard_match_mv
+        
+        limit 5;

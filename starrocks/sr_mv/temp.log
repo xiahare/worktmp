@@ -1,0 +1,227 @@
+-- start starrocks server via dockwer
+docker run -p 9030:9030 -p 8030:8030 -p 8040:8040 -itd --name quickstart starrocks/allin1-ubuntu
+-- start starrocks client from container
+docker exec -it quickstart mysql -P 9030 -h 127.0.0.1 -u root --prompt="StarRocks > "
+
+show tables like '%xl%';
+
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sample`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sample` (`adomid`, `mv_itime`, `src_ip`, `logcnt`)
+PARTITION BY (time_slice(`mv_itime`, INTERVAL 5 minute))
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC 
+PROPERTIES (
+"replicated_storage" = "true",
+"replication_num" = "1",
+"storage_medium" = "HDD"
+)
+AS SELECT base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `mv_itime`, base.`src_ip`, count(*) AS `logcnt`
+FROM `xl_siem_tbl_sample` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;
+
+
+
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sync` (`adomid`, `itime`, `src_ip`, `logcnt`)
+PARTITION BY date_trunc('hour', `itime`)
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC EVERY (INTERVAL 5 MINUTE)
+PROPERTIES (
+"replicated_storage" = "true",
+"replication_num" = "1",
+"storage_medium" = "HDD"
+)
+AS SELECT base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `itime`, base.`src_ip`, count(*) AS `logcnt`
+FROM `_root_siem_siem` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_1hour_mv_sync`
+(
+    `adomid`,
+    `itime_hour`,
+    `src_ip`,
+    `logcnt`
+)
+PARTITION BY `itime_hour`
+DISTRIBUTED BY RANDOM
+PROPERTIES (
+    "replicated_storage" = "true",
+    "replication_num" = "1",
+    "storage_medium" = "HDD"
+)
+AS
+SELECT
+    base.`adomid`,
+    date_trunc('hour', base.`itime`) AS `itime_hour`,
+    base.`src_ip`,
+    count(*) AS `logcnt`
+FROM `__root_siem_siem` base
+GROUP BY
+    base.`adomid`,
+    date_trunc('hour', base.`itime`),
+    base.`src_ip`;
+    
+    
+SELECT
+TASK_NAME,
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    REFRESH_TYPE,
+    IS_ACTIVE,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = 'xl_siem_1hour_mv_sync';
+
+SELECT
+TASK_NAME,
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    REFRESH_TYPE,
+    IS_ACTIVE,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = 'xl_siem_1min_mv_sync';
+
+SELECT 
+    seconds_diff(FINISH_TIME,CREATE_TIME) as run_time,
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-978098' order by CREATE_TIME desc limit 20;
+
+SELECT 
+    seconds_diff(FINISH_TIME,CREATE_TIME) as run_time,
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-979788' order by CREATE_TIME desc limit 20;
+
+
+select min(itime_hour), max(itime_hour), count(*) from xl_siem_1hour_mv_sync;
+
+
+SELECT
+    TABLE_NAME,
+    TASK_NAME，
+    IS_ACTIVE,
+    LAST_REFRESH_DURATION,
+    LAST_REFRESH_START_PARTITION,
+    LAST_REFRESH_END_PARTITION,
+    LAST_REFRESH_BASE_REFRESH_PARTITIONS,
+    LAST_REFRESH_MV_REFRESH_PARTITIONS,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = '__root_siem_siem_5min_mv';
+
+SELECT 
+    CREATE_TIME,
+    QUERY_ID,
+    FINISH_TIME，
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-165535'；
+
+select min(itime), max(itime), count(*) from __root_siem_siem_5min_mv;
+select min(itime), max(itime), count(*) from __root_siem_siem_hour_mv;
+
+select min(itime), max(itime), count(*) from __root_siem_siem_5min_mv where itime >= '2025-05-07 15:00:00' and itime < '2025-05-07 16:00:00';
+
+select min(itime), max(itime), count(*) from __root_siem_siem_5min_mv where itime >= '2025-05-07 16:00:00' and itime < '2025-05-07 16:05:00';
+
+select min(itime), max(itime), count(*) from __root_siem_siem where itime >= '2025-05-07 16:00:00' and itime < '2025-05-07 16:05:00';
+
+show partitions from __root_siem_siem;
+
+show partitions from __root_siem_siem_5min_mv;
+
+
+SELECT
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    REFRESH_TYPE,
+    IS_ACTIVE,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = '__root_siem_siem_hour_mv';
+
+
+SELECT
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    REFRESH_TYPE,
+    IS_ACTIVE,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = '__root_siem_siem_day_mv';
+
+
+select min(itime), max(itime), count(*) from __root_siem_siem_5min_mv;
++---------------------+---------------------+-----------+
+| min(itime)          | max(itime)          | count(*)  |
++---------------------+---------------------+-----------+
+| 2025-05-07 17:50:00 | 2025-05-08 16:00:00 | 166449261 |
++---------------------+---------------------+-----------+
+select min(itime), max(itime), count(*) from __root_siem_siem;
++---------------------+---------------------+------------+
+| min(itime)          | max(itime)          | count(*)   |
++---------------------+---------------------+------------+
+| 2025-05-07 17:54:14 | 2025-05-08 16:32:08 | 2483623513 |
++---------------------+---------------------+------------+
+
+DROP  MATERIALIZED VIEW `__root_siem_siem_5min_mv_ph`;
+DROP  MATERIALIZED VIEW `__root_siem_siem_hour_mv_ph`;
+
+SELECT 
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE query_id like 'c3dc8758-2c54-11f0-a031-4e03c7f7aea3' order by CREATE_TIME desc limit 10;
+
+SELECT 
+Query_id,
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-165535' and STATE in ('MERGED','SUCCESS') order by CREATE_TIME desc;
+
+
+SELECT 
+Query_id,
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-165535'  order by CREATE_TIME desc limit 20;
+
+

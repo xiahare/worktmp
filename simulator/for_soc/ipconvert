@@ -1,0 +1,15 @@
+for ipv4
+1. hi == 0
+2. the upper 32 bits of lo are 0x0000FFFF
+3. the lower 32 bits of lo are the IPv4 address
+
+
+An IPv4-mapped IPv6 address is an IPv6 address format that represents a 32-bit IPv4 address within the 128-bit IPv6 structure. It allows IPv6-only applications to communicate with IPv4 nodes by embedding the IPv4 address into the last 32 bits of the IPv6 address, preceded by a fixed prefix (typically ::FFFF: or 0:0:0:0:0:FFFF:). This mapping enables a machine with both IPv4 and IPv6 capabilities, known as dual-stack, to handle connections from both IPv4 and IPv6 clients.  
+How it Works
+Format: The address has the format ::FFFF:W.X.Y.Z, where W.X.Y.Z is the familiar IPv4 dotted-decimal notation. For example, the IPv4 address 192.0.2.128 becomes ::FFFF:192.0.2.128. 
+Embedding: The high-order 96 bits of the IPv6 address are set to the fixed ::FFFF: prefix, while the low-order 32 bits contain the actual IPv4 address. 
+OS Signal: The operating system recognizes this format and, instead of treating it as a true IPv6 address, uses native IPv4 protocols to handle the communication. 
+Purpose
+Compatibility: The primary goal is to provide a way for IPv6-only applications or devices to interact with the existing IPv4 network during the transition to IPv6. 
+Dual-Stack Operations: It allows a dual-stack machine to run software that is written only for IPv6 but still accept connections from IPv4 clients. 
+API Simplicity: It offers a way to represent IPv4 addresses using the 128-bit IPv6 socket API, providing a single interface for both address types. 

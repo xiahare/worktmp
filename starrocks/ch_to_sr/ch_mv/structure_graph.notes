@@ -1,0 +1,62 @@
+Data Flow Graph:
+-> elog_sp
+    (21005) -> fv_ffw_e_ipsec
+    (21005) -> fv_ffw_e_sys_admin_event
+    (21005) -> fv_ffw_e_system_event
+    (21005) -> fv_ffw_e_unauthorized
+    (5) -> fv_fgt_e_auth_ap
+    (5) -> fv_fgt_e_event_summary
+    (5) -> fv_fgt_e_ipsec
+    (5) -> fv_fgt_e_resource_usage
+    (5) -> fv_fgt_e_rogue_aps
+    (5) -> fv_fgt_e_sdwan_stats
+    (5) -> fv_fgt_e_sys_admin_event
+    (5) -> fv_fgt_e_system_event
+    (5) -> fv_fgt_e_unauthorized
+    (5) -> fv_fgt_e_wifi_bridge_mode
+    (15005) -> fv_fpx_e_sys_admin_event
+    (15005) -> fv_fpx_e_system_event
+    (15005) -> fv_fpx_e_unauthorized
+-> tlog_sp
+    (21010) -> fv_ffw_t_src_dst
+    (21010) -> fv_ffw_t_threat
+    (10) -> fv_fgt_t_auth_ap_ssid
+    (10) -> fv_fgt_t_iot_inventory
+    (10) -> fv_fgt_t_src_dst
+        -> fv_fgt_t_policy_hits
+        -> fv_fgt_t_ztna
+        -> fv_fgt_t_ztna_dev_tags
+    (10) -> fv_fgt_t_src_dst_threat
+    (10) -> fv_fgt_t_threat
+    (10) -> fv_fgt_t_traffic_shaper
+    (10) -> fv_fgt_t_wifi_client
+    (15010) -> fv_fpx_t_src_dst
+    (15010) -> fv_fpx_t_threat
+-> ulog_sp
+    (3016) -> fv_fct_T_application
+    (3016) -> fv_fct_T_endpoint_app
+    (3016) -> fv_fct_T_threat
+    (3016) -> fv_fct_T_website
+    (1) -> fv_fgt_a_src_dst
+    (1) -> fv_fgt_a_src_dst_threat
+    (1) -> fv_fgt_a_threat
+    (3) -> fv_fgt_d_dlp_events
+    (0) -> fv_fgt_r_cloud_app
+    (0) -> fv_fgt_r_si_cloud_app
+    (0) -> fv_fgt_u_safeguard_match
+    (11) -> fv_fgt_v_endpoint_virus
+    (11) -> fv_fgt_v_fsa_detection
+    (11) -> fv_fgt_v_fsa_verdict
+    (11) -> fv_fgt_v_fsa_verdict_avatar
+    (11) -> fv_fgt_v_verdict_and_botnet
+    (13) -> fv_fgt_w_pbd_ep_drilldown
+    (13) -> fv_fgt_w_web_search
+    (4007) -> fv_fml_h_stats
+    (15001) -> fv_fpx_a_src_dst
+    (15001) -> fv_fpx_a_threat
+    (15003) -> fv_fpx_d_events
+    (15000) -> fv_fpx_r_cloud_app
+    (15000) -> fv_fpx_r_si_cloud_app
+    (15013) -> fv_fpx_w_web_search
+    (5001) -> fv_fwb_a_threat
+    (5010) -> fv_fwb_t_threat

@@ -1,0 +1,107 @@
+-- Port to v7.4.4
+
+** Lei
+[0987194] Adding subtypes for fpa_protocol,fgt_protocol,fpx_protocol
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2825
+
+** Herbert
+Include null values for not like filter
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2931
+Add log time rebuild in redis
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2913
+
+** Rick
+Storage pool type switch and batch ADOM migration improvement
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2902
+Fix duplicated storage pool issue when retrying a failed storage pool
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2893
+Fix storage pool display order issue
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2883
+Support rename facet tables
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2837
+Add api to return storage groups by pool id
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2830
+Support storage type switch API
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2819
+Add feign client retry
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2866
+
+** Zhichao
+upgrade tomcat to latest version 
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2882
+
+** Weizhi
+update default grpc conf
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2855
+upgrade sonic in ch sinker
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2823
+update ch.sinker Go builder ver to 1.24
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2822
+KafkaSink with readiness checking
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2937
+
+** Yufan
+fix the perf issue when there are too many adoms
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2923
+Add a condition to handle missing replicas for recover tablet job
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2896
+Increase the offset margin to further prevent kafka retention caused out of range
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2863
+Resolve the multiple adom perf issue in ETL
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2841
+
+** Howard
+[
+Enhance filter processes and check FacetView
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2890
+Pre-check facetDefineOri
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2862
+port to 7.2 Standardize the process start time based on runtime Interval
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2845
+Improve rebuild facet processes
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2827
+Update facet process dirty check
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2821
+] (Squash into one MR manually)
+Update facet process dirty check
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2821
+
+
+check :
+
+-- possible:
+
+
+
+-- should not
+
+** Lichen
+Fix Iceberg table and view check failed blocking integrity check issue
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2926
+Support iceberg schema maintain and update
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2853
+Check and Create Missing Iceberg Views During Schema Update
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2884
+
+** Howard
+-- merged
+Enhance filter processes and check FacetView
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2890
+Pre-check facetDefineOri
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2862
+port to 7.2 Standardize the process start time based on runtime Interval
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2845
+Improve rebuild facet processes
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2827
+Update facet process dirty check
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2821
+-- not need
+Enhance facet processes filter
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2885
+Port the fixes to main branch
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2876
+handle special facet registration
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2872
+Check if the system any auto run facet
+https://dops-git106.fortinet-us.com/FAZ-BD/platform/-/merge_requests/2870
+

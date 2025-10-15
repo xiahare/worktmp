@@ -1,0 +1,16 @@
+show proc '/global_current_queries'\G
+show proc '/current_queries'\G
+
+-- get database_id
+SHOW PROC "/dbs";
+-- get table_id
+SHOW PROC "/dbs/346785/"
+-- get PARTITION_ID
+SHOW PARTITIONS FROM __root_facet_result_rmrowno;
+
+
+10.106.2.78      etl-admin-10-106-2-77.faz.local
+10.106.2.78      consul-admin-10-106-2-77.faz.local
+10.106.2.78      starrocks-admin-10-106-2-77.faz.local
+can add those to your /etc/hosts
+then access starrocks gui http://starrocks-admin-10-106-2-77.faz.local/ root/root

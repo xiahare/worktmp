@@ -1,0 +1,39 @@
+** 1. How to create sync MV in catalog ( Lichen , Lei)
+== 2. Normalize MV facets init format and convert MV to facet configurations ( Howard , Lichen, Lei)
+== 3. Excute final MV sql API ( Howard , Lei )
+== 4. Try to rewrite a Clickhouse MV sql. ( Herbert , Lei )
+
+== 6. Init/Sync facet MVs when schema-check ( Howard , Lei )
+== 7. UDF/UDAF in MVs ( Herbert, Lei )
+== 8. Design how to check MV by versions. (Lichen , Lei )
+
+-- Refine in bd side
+MV mangement by GUI
+MV schema-check (facet table check in column level, MV by versions )
+create sync MV error logs issues
+udf/udaf implements
+try Array column type in Starrocks
+try "3-unified" tables
+
+
+-- Starrocks Query plan:
+-- Before POC
+Phase 1: async MV -> sync MV
+Phase 2: sql hardcode  converter -> rewriter
+Phase 3: init all fv MVs with facets and facets MV management GUI
+-- After POC
+Phase 4: integrate trunk fv final queries
+
+
+-- when taking formal dev 
+-- on faz size to do
+Change final SQLs from facets to MVs
+Remove the database prefix of "siem." in MV definition or other sqls.
+How to handle the col of "dvid" in MV.
+Use the new API for MVs queries. (how to handle the case of MV results not ready)
+Modify some sqls:
+    Replace avg with sum/count
+    Fix ambiguous column issue (e.g. itime)
+    max/min before casting (e.g. min(toInt32(itime)))
+special MV: fv_fgt_u_safeguard_match_sp, from multi-infolog tables (need to )
+

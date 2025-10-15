@@ -1,0 +1,26 @@
+ Solution 1:
+ 
+         +---------+             
+         |   GUI   |   
+         +---------+             
+              |          JWT (RBAC)
+              ▼
+   +----------------------+
+   |  API Gateway Server  |  （Auth and Route）
+   +----------------------+
+      |        |        |        ( Certifications )
+      ▼        ▼        ▼
+  Server A  Server B  Server C     ( Sub-system RESTful APIs ）
+
+Solution 2:
+         +---------+             
+         |   GUI   |   
+         +---------+             
+              |          JWT (RBAC)
+              ▼
+   +----------------------+
+   |  API Gateway Server  |  （Auth and Route）
+   +----------------------+
+      |        |        |        ( JWT for each sub-sytem )
+      ▼        ▼        ▼
+  Server A  Server B  Server C     ( Sub-system RESTful APIs ）

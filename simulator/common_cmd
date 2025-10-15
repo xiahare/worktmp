@@ -1,0 +1,45 @@
+
+rm /Users/lei/projs/temp/com.fortidata.simulator-1.8.0-SNAPSHOT-project.tar.gz
+rm -rf /Users/lei/projs/temp/simulator
+cp /Users/lei/projs/platform/simulator/target/com.fortidata.simulator-1.8.0-SNAPSHOT-project.tar.gz /Users/lei/projs/temp/
+
+cd /Users/lei/projs/temp/platform/simulator
+cd target
+tar -zxvf *.tar.gz 
+cd simulator
+
+cd /Users/lei/projs/temp/simulator
+
+java -jar *.jar -fbs
+
+java -jar *.jar -f config/simulator_docker.properties
+
+java -jar *.jar -f config/simulator_flatbuffers.properties
+
+
+java -jar *.jar -h
+
+java -jar *.jar -la
+
+# build AMD64 image and load to local
+docker buildx build \
+  --platform linux/amd64 \
+  -t 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.simulator:latest \
+  --load \
+  .
+
+
+# login
+# push to aws ecr
+docker push 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.simulator:latest
+
+
+# pull and check image
+docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.simulator:latest
+docker images | grep simulator
+docker inspect 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.simulator:latest
+
+scp run_simulator_docker.sh root@10.106.2.50:/data2/simulator/
+scp run_simulator_docker_server.sh root@10.106.2.50:/data2/simulator/
+scp test.conf root@10.106.2.50:/data2/simulator/
+scp readme.md root@10.106.2.50:/data2/simulator/

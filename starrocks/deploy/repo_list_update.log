@@ -1,0 +1,39 @@
+-- build platform image
+http://172.30.42.155:8080/job/FAZBD%20Build%20com.fortidata.platform/
+-- update image list
+https://dops-git106.fortinet-us.com/FAZ-BD/bd.controller.ng/-/blob/starrocks-poc/k3s-tf/docker_image_list.txt?ref_type=heads
+
+1. push new img from 10.106.2.50
+ssh root@10.106.2.50
+docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.fazconnector:1.8.0-SNAPSHOT-20250421.234356
+docker tag  353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.fazconnector:1.8.0-SNAPSHOT-20250421.234356 10.106.2.60:5000/com.fortidata.fazconnector:bd-controller
+docker push 10.106.2.60:5000/com.fortidata.fazconnector:bd-controller
+2. reinstall data svr from 10.106.2.60
+ssh admin@10.106.2.60
+exec shell
+pw: admin
+
+helm uninstall data-server
+fazctl init-service
+
+-- scp image deploy
+bash# bdctl debug update_image help
+
+Usage: /usr/bin/update_image <src_image_file> [<mode>] [<dst_image>]
+Example: /usr/bin/update_image /path/to/image.tar local com.fortidata.platform:bd-controller
+mode: 'local' or 'cluster' (default is 'cluster')
+dst_image: optional, the destination image name to push to, if not set, it will use the source image name with ':bd-controller' tag
+
+1. prepare imgage .tgz
+  from 120:
+  docker pull 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.bd.management:1.8.0-SNAPSHOT-20250612.174234
+  docker save 353941098768.dkr.ecr.us-west-1.amazonaws.com/platform/snapshot/com.fortidata.bd.management:1.8.0-SNAPSHOT-20250612.174234 | gzip > bd-mgmt.tgz
+
+2. copy image to faz
+  from .60 faz shell:
+  scp root@10.160.74.120:/root/bd-mgmt.tgz /drive0/private/fazbd/.
+  bdctl debug update_image /drive0/private/fazbd/bd-mgmt.tgz
+
+3. reload deployment
+  helm uninstall bd-management
+  bdctl init-services

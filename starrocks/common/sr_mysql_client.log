@@ -5,12 +5,11 @@ exec shell
 pw: admin
 fazctl debug sql-shell
 
-
 10.106.2.78      etl-admin-10-106-2-77.faz.local
 10.106.2.78      consul-admin-10-106-2-77.faz.local
 10.106.2.78      starrocks-admin-10-106-2-77.faz.local
 can add those to your /etc/hosts
-then access starrocks gui http://starrocks-admin-10-106-2-77.faz.local/ root/root
+then access starrocks gui http://starrocks-admin-10-106-2-77.faz.local/ root/root 
 
 fazbdadm debug sr-shell
 kubectl exec -it kube-starrocks-fe-0 -n db -- bash
@@ -20,7 +19,11 @@ mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv hit
 mysql -h kube-starrocks-fe-0.kube-starrocks-fe-search.default.svc.cluster.local -P 9030 -u root -D hits
 mysql -P 9030 -h kube-starrocks-fe-search.service.consul -u root -proot -vvv  db_log_public
 
-kubectl exec -it kube-starrocks-fe-1 -n db -- mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public
+mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public
+
+kubectl exec -it kube-starrocks-fe-1 -- mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public --raw
+
+kubectl exec -it kube-starrocks-fe-1 -n db -- mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public --raw
 
 docker images | grep star
 kubectl get po | grep star

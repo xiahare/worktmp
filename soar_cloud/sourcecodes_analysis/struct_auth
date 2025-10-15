@@ -1,0 +1,57 @@
+认证功能说明
+	1.	Token-based Auth（令牌认证）
+	•	authentication/services/token.py：生成与验证 JWT Token。
+	•	authentication/serializers/token_serializers.py：Token 的序列化与解析。
+	•	views.py 中暴露出类似 /api/token/ 的登录接口。
+	2.	API Key Auth
+	•	api_key_auth.py 和 services/api_key_service.py 定义了如何使用 X-API-Key 等方式来进行认证。
+	•	常用于服务间调用（非用户身份）。
+	3.	Basic Auth / Appliance Auth
+	•	basic_auth.py 提供传统的用户名密码方式。
+	•	appliance_auth.py 针对设备层面的认证，如 FortiGate、FortiAnalyzer 设备。
+	4.	自定义认证后端
+	•	auth_backend.py 中实现了 Django 的 BaseAuthentication 接口，支持多种认证方式组合。
+	5.	权限控制
+	•	permissions.py 定义了基于角色（Role-Based Access Control, RBAC）控制的访问权限规则。
+	6.	配置与环境切换
+	•	configs/ 提供 ini 和 yaml 格式配置，支持 dev/prod/qa 等环境。
+	•	配置中可能包括 Redis、RabbitMQ、数据库连接等信息。
+
+⸻
+
+📦 与 RabbitMQ 的关系？
+
+从当前结构上看，没有明显发现 RabbitMQ 的使用（如 celery、kombu、pika 等）。但有可能：
+	•	RabbitMQ 是用于该认证服务与其他模块（如 workflow 或 audit）交互通信的中间件；
+	•	或者被其他服务调用认证服务后异步发消息，此逻辑可能在更上层的系统中实现。
+
+可以进一步检查是否存在如 celery.py、mq_utils.py、tasks.py、message_broker 相关模块。
+
+⸻
+
+✅ 总结：此模块是如何提供认证功能的？
+	•	封装了多种认证方式（Token, API Key, Basic）；
+	•	提供了统一的接口入口（通过 urls.py + views.py）；
+	•	支持权限模型与角色；
+	•	支持灵活配置及多环境部署；
+	•	可扩展：可以很容易集成到 gateway 或 facade 层中作为认证网关。
+
+auth-development/
+├── authentication/          # 核心认证逻辑
+│   ├── api_key_auth.py      # API Key认证
+│   ├── appliance_auth.py    # 设备认证
+│   ├── auth_backend.py      # 自定义认证后端
+│   ├── basic_auth.py        # Basic认证实现
+│   ├── constants.py         # 常量
+│   ├── models.py            # 用户/权限相关模型
+│   ├── permissions.py       # 权限定义
+│   ├── serializers/         # JWT Token相关序列化
+│   ├── services/            # 服务逻辑（Token生成等）
+│   ├── urls.py              # 接口路由
+│   ├── views.py             # 视图逻辑（处理请求）
+├── auth/                    # Django 项目配置
+│   ├── settings.py
+│   ├── urls.py
+├── configs/                 # 配置文件（多环境）
+├── deployment/              # 构建部署脚本
+├── manage.py                # 启动入口

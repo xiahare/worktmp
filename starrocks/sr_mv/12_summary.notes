@@ -1,0 +1,39 @@
+Summary:
+Implemented siem_5min_mv_sync and integrated it into the GUI.
+Improve performance for some threat hunting queries
+
+Issues:
+1. array_agg() has no limit item number 
+https://github.com/StarRocks/starrocks/issues/36793
+2. job conflicts when creating sync MV (build old data)
+https://docs.starrocks.io/docs/faq/Others#how-can-i-prevent-expression-partition-conflicts-caused-by-concurrent-execution-of-loading-tasks-and-partition-creation-tasks
+3. async MV would throw mem exceeded 
+4. the udf of `browseTimeStateArray` to support
+browseTimeStateArray(ebtime) AS browse_time_state
+
+Main changes:
+1. remove avg_state() and replace avg() with sum()/count()
+2. remove "group by" in "common view", array_agg_merge(mv_loguids) -> mv_loguids.col1 AS loguids
+3. MIN(UNIX_TIMESTAMP(itime)) AS itime_min -> UNIX_TIMESTAMP(MIN(itime)) AS itime_min
+
+Next plan,
+
+1. how to create (1hour, 1day) level view ( sync or async ) -- performance impact -- if it can use 5min level mv
+2. try to use "Aggregate State()" way  -- performance
+3. keep an eye on performance for long time running for these MVs
+4. mv_rewrite optimization for some details.
+5. research create MV ( Control old data )
+6. design 
+
+current FAZ MV implement:
+appA_5min  -> app1_5min -> xxx_5min
+           -> app2_5min 
+appA_1hour  -> app1_1hou
+           -> app2_1hour 
+appA_1day  -> app1_1day
+           -> app2_1day                     
+How to implement in Starrocks
+
+query from fact table with MV optimization, compare query from MV directly 
+Table partitions limit and impact
+how to check sync MV data size

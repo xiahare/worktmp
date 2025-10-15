@@ -1,0 +1,26 @@
+spring.redis.lettuce.pool.time-between-eviction-runs=60000       # check connections status per 60 secends
+spring.redis.lettuce.pool.min-evictable-idle-time=300000         # evict if idle for more than 300 seconds
+
+
+As we cannot reproduce this issue, we haven't figured out the exact root cause.
+However, based on the logs, it appears that there might be an issue with the Redis client (connection pool) in the data service, which failed to retrieve the correct data from Redis. As a result, logview results could not be parsed properly after the issue occurred, and the problem was not resolved until the data service was restarted. So far, the error has not reoccurred.
+
+Based on the above analysis, we propose enhancing the Redis client by automatically refreshing connections in the pool to avoid bad keep-alive connections.
+
+This can be achieved through configuration changes without requiring any code modifications:
+
+spring.redis.lettuce.pool.time-between-eviction-runs=60s       # check connections status per 60 secends
+spring.redis.lettuce.pool.min-evictable-idle-time=300s        # evict if idle for more than 300 seconds
+
+We will continue monitoring the issue to see whether it recurs and whether it can recover on its own without manual intervention.
+
+----------------
+# Steps
+Input the following configurations in data service configurations and apply it.
+Cluster Manager -> Services -> Core -> Configuration -> Query
+
+spring.redis.lettuce.pool.time-between-eviction-runs=60s    
+spring.redis.lettuce.pool.min-evictable-idle-time=300s
+----------------
+
+Thanks.

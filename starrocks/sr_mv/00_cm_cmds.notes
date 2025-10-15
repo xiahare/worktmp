@@ -1,0 +1,96 @@
+-- k3s env start client
+kubectl exec -it kube-starrocks-fe-1 -n db -- mysql -P 9030 -h 127.0.0.1 -D db_log_public -u root --prompt="StarRocks > " -A db_log_public --raw
+
+kubectl exec -it kube-starrocks-be-1 -n db -- bash
+
+-- restart starrocks
+helm uninstall starrocks -n db
+fazctl init-service
+
+
+-- start starrocks server via docker
+docker run -p 9030:9030 -p 8030:8030 -p 8040:8040 -itd --name test-starrocks starrocks/allin1-ubuntu
+docker run \
+  -p 9030:9030 -p 8030:8030 -p 8040:8040 \
+  --network host \
+  -v /data2/xl/starrocks/fe:/data/deploy/starrocks/fe \
+  -v /data2/xl/starrocks/be:/data/deploy/starrocks/be \
+  -itd \
+  --name test-starrocks \
+  starrocks/allin1-ubuntu
+mkdir -p /data2/xl/starrocks/fe
+mkdir -p /data2/xl/starrocks/be
+chmod -R 777 /data2/xl/starrocks
+-- start starrocks client from container
+docker exec -it test-starrocks mysql -P 9030 -h 127.0.0.1 -u root --prompt="StarRocks > " -A db_log_public --raw
+
+-- faz source codes
+-- faz MVs: FortiManager/server/faz_core/daemon/siemdbd/fv_templ
+-- faz udaf: FortiManager/server/cooked/clickhouse/faz_diff
+-- faz MVs parser: FortiManager/server/faz_core/daemon/siemdbd/siemdb_fv_templ_util.py
+-- faz table mapping: FortiManager/server/faz_core/logbase/ch_traffic_table_template.json
+
+-- add/change configurations
+-- e.g.
+kubectl set env deployment/bd-management-server DATA_COMPUTE_STATS_FACET_TABLES="{'facet_define', 'facet_process'}" (edited) 
+
+
+show tables like '%xl%';
+
+show partitions from xl_siem_5min_mv_sample;
+show partitions from xl_siem_tbl_sample;
+
+select min(itime), max(itime), count(*) from xl_siem_tbl_sample;
+select min(itime), max(itime), count(*) from xl_siem_5min_mv_sample;
+
+
+
+-- manually refreshß
+REFRESH MATERIALIZED VIEW xl_siem_5min_mv_sample;
+
+-- check last refresh time
+SELECT
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    REFRESH_TYPE,
+    IS_ACTIVE,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = 'xl_siem_5min_mv_sample';
+
++---------------+------------------------+--------------+-----------+-------------------------+----------------------------+--------------------+----------------------------+
+| TABLE_SCHEMA  | TABLE_NAME             | REFRESH_TYPE | IS_ACTIVE | LAST_REFRESH_START_TIME | LAST_REFRESH_FINISHED_TIME | LAST_REFRESH_STATE | LAST_REFRESH_ERROR_MESSAGE |
++---------------+------------------------+--------------+-----------+-------------------------+----------------------------+--------------------+----------------------------+
+| db_log_public | xl_siem_5min_mv_sample | ASYNC        | true      | 2025-05-02 18:00:15     | 2025-05-02 18:00:17        | SUCCESS            |                            |
++---------------+------------------------+--------------+-----------+-------------------------+----------------------------+--------------------+----------------------------+
+
+SELECT
+    TABLE_NAME,
+    TASK_NAME,
+    IS_ACTIVE,
+    LAST_REFRESH_DURATION,
+    LAST_REFRESH_START_PARTITION,
+    LAST_REFRESH_END_PARTITION,
+    LAST_REFRESH_BASE_REFRESH_PARTITIONS,
+    LAST_REFRESH_MV_REFRESH_PARTITIONS,
+    LAST_REFRESH_START_TIME,
+    LAST_REFRESH_FINISHED_TIME,
+    LAST_REFRESH_STATE,
+    LAST_REFRESH_ERROR_MESSAGE
+FROM information_schema.materialized_views
+WHERE TABLE_NAME = '__root_siem_siem_5min_mv';
+
+
+SELECT 
+    seconds_diff(FINISH_TIME,CREATE_TIME) as run_time,
+    CREATE_TIME,
+    FINISH_TIME,
+    STATE,
+    ERROR_MESSAGE,
+    PROGRESS,
+    EXTRA_MESSAGE
+FROM information_schema.task_runs WHERE task_name ='mv-690945' order by CREATE_TIME desc limit 20;
+

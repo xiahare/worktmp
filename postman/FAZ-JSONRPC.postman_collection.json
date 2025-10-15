@@ -1,0 +1,141 @@
+{
+  "info": {
+    "name": "FortiAnalyzer JSONRPC - Login + Logsearch (env vars)",
+    "_postman_id": "4b3c7a4e-41a9-4c9f-8f2a-6df61b9f0a10",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Minimal collection for FAZ login and logsearch using required schema (apiver, device[], logtype, time-range with start/end). Session and qid are stored as environment variables. Adds collection-level initialization for start/end and device_devid normalization."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "function pad(n){return n<10?'0'+n:String(n);}",
+          "function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}",
+          "// Ensure start/end exist (last 1h)",
+          "var s = pm.environment.get('start');",
+          "var e = pm.environment.get('end');",
+          "if (!s || !e) {",
+          "  var end = new Date();",
+          "  var start = new Date(end.getTime() - 3600*1000);",
+          "  pm.environment.set('start', fmt(start));",
+          "  pm.environment.set('end', fmt(end));",
+          "}",
+          "// Normalize device_devid to include vdom [adom] if missing",
+          "var adom = pm.environment.get('adom') || 'root';",
+          "var devid = pm.environment.get('device_devid');",
+          "if (devid && devid.indexOf('[') === -1) {",
+          "  pm.environment.set('device_devid', devid + '[' + adom + ']');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1 - Login (/sys/login/user)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "url": "{{baseUrl}}/jsonrpc",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"exec\",\n  \"params\": [\n    {\n      \"url\": \"/sys/login/user\",\n      \"data\": {\n        \"user\": \"{{user}}\",\n        \"passwd\": \"{{passwd}}\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var jsonData = null;",
+              "try { jsonData = pm.response.json(); } catch (e) { try { jsonData = JSON.parse(responseBody); } catch (e2) { jsonData = null; } }",
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "var res = jsonData && jsonData.result && jsonData.result[0];",
+              "var code = res && res.status && res.status.code;",
+              "pm.test('Login status code 0', function () { pm.expect(code).to.eql(0); });",
+              "var sid = (jsonData && jsonData.session) || (res && res.data && res.data.session);",
+              "pm.test('Has session id', function () { pm.expect(sid).to.be.a('string').and.not.empty; });",
+              "if (sid) { pm.environment.set('faz_session', sid); pm.globals.set('faz_session', sid); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Logsearch - Start (ADOM {{adom}})",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "url": "{{baseUrl}}/jsonrpc",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 11,\n  \"method\": \"add\",\n  \"session\": \"{{faz_session}}\",\n  \"params\": [\n    {\n      \"url\": \"/logview/adom/{{adom}}/logsearch\",\n      \"uri\": \"/logview/adom/{{adom}}/logsearch\",\n      \"apiver\": 3,\n      \"case-sensitive\": false,\n      \"device\": [ { \"devid\": \"{{device_devid}}\" } ],\n      \"logtype\": \"{{logtype}}\",\n      \"time-order\": \"desc\",\n      \"time-range\": {\n        \"start\": \"{{start}}\",\n        \"end\": \"{{end}}\"\n      },\n      \"limit\": {{limit}}\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var jsonData = null;",
+              "try { jsonData = pm.response.json(); } catch (e) { try { jsonData = JSON.parse(responseBody); } catch (e2) { jsonData = null; } }",
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "var res = jsonData && jsonData.result && jsonData.result[0];",
+              "pm.test('Start code 0', function () { pm.expect(res && res.status && res.status.code).to.eql(0); });",
+              "function deepFindKey(o, keys) { try { if (!o || typeof o !== 'object') return null; if (Array.isArray(o)) { for (var i=0;i<o.length;i++){ var v=deepFindKey(o[i], keys); if (v) return v; } return null; } for (var k in o){ if (keys.indexOf(k) !== -1 && o[k] && typeof o[k] !== 'object') return o[k]; var v = deepFindKey(o[k], keys); if (v) return v; } return null; } catch(e){ return null; } }",
+              "var tid = deepFindKey(res, ['tid','taskid','task_id']) || deepFindKey(jsonData, ['tid','taskid','task_id']);",
+              "var qid = deepFindKey(res, ['qid','query_id','jobid']) || deepFindKey(jsonData, ['qid','query_id','jobid']);",
+              "console.log('Logsearch Start identifiers:', { tid: tid, qid: qid });",
+              "pm.test('Has task id (tid)', function () { pm.expect(!!tid).to.eql(true); });",
+              "if (tid) { pm.environment.set('logsearch_tid', String(tid)); pm.globals.set('logsearch_tid', String(tid)); }",
+              "if (qid) { pm.environment.set('logsearch_qid', String(qid)); pm.globals.set('logsearch_qid', String(qid)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Logsearch - Fetch Results (result path)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "url": "{{baseUrl}}/jsonrpc",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 12,\n  \"method\": \"get\",\n  \"session\": \"{{faz_session}}\",\n  \"params\": [\n    {\n      \"url\": \"/logview/adom/{{adom}}/logsearch/{{logsearch_tid}}\",\n      \"apiver\": 3,\n      \"limit\": {{limit}},\n      \"offset\": {{offset}}\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var jsonData = null;",
+              "try { jsonData = pm.response.json(); } catch (e) { try { jsonData = JSON.parse(responseBody); } catch (e2) { jsonData = null; } }",
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "var res = jsonData && jsonData.result && jsonData.result[0];",
+              "pm.test('Fetch code 0', function () { pm.expect(res && res.status && res.status.code).to.eql(0); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "https://10.106.2.140" },
+    { "key": "user", "value": "admin" },
+    { "key": "passwd", "value": "Fortinet@123" },
+    { "key": "adom", "value": "root" },
+    { "key": "device_devid", "value": "All_FortiGates" },
+    { "key": "logtype", "value": "traffic" },
+    { "key": "limit", "value": "10" },
+    { "key": "offset", "value": "0" },
+    { "key": "start", "value": "" },
+    { "key": "end", "value": "" }
+  ]
+}

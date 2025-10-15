@@ -1,0 +1,227 @@
+-- top timeline
+SELECT *
+FROM (
+    SELECT 
+        UNIX_TIMESTAMP(t1.itime) AS itime,
+        logcnt
+    FROM (
+        SELECT itime
+        FROM (
+            SELECT DATE_SUB(
+                       DATE_TRUNC('minute', CONVERT_TZ(FROM_UNIXTIME(1747279440 + (300 * number)), 'UTC', 'US/Pacific')),
+                       INTERVAL MOD(MINUTE(CONVERT_TZ(FROM_UNIXTIME(1747279440 + (300 * number)), 'UTC', 'US/Pacific')), 5) MINUTE
+                   ) AS itime
+            FROM TABLE(generate_series(0, 2000 - 1)) AS t(number)
+        ) AS t
+        WHERE itime >= FROM_UNIXTIME(1747279440)
+          AND itime <= FROM_UNIXTIME(1747283040)
+        ORDER BY itime ASC
+    ) AS t1
+    LEFT JOIN (
+        SELECT 
+            itime,
+            SUM(logcnt) AS logcnt
+        FROM (
+            SELECT 3 AS adom_oid, *
+            FROM adom3_sifv_5min
+        ) AS t
+        WHERE itime >= FROM_UNIXTIME(1747279440)
+          AND itime <= FROM_UNIXTIME(1747283040)
+        GROUP BY itime
+        ORDER BY itime
+        LIMIT 1000
+    ) AS t2
+    USING (itime)
+    LIMIT 1000000
+) t;
+
+
+-- left menu 
+-- 1 row in set (4.73 sec)
+-- PREAGGREGATION: OFF. Reason: The parameter of aggregate function isn't value column or CAST/CASE-WHEN expression
+SELECT *
+FROM (
+    SELECT 
+        MIN(UNIX_TIMESTAMP(itime)) AS itime_min,
+        MAX(UNIX_TIMESTAMP(itime)) AS itime_max,
+        SUM(logcnt) AS logcnt,
+        
+        NDV(data_sourceid)     AS uc_data_sourceid,
+        NDV(epid)              AS uc_epid,
+        NDV(euid)              AS uc_euid,
+        NDV(event_id)          AS uc_event_id,
+        NDV(event_action)      AS uc_event_action,
+        NDV(src_ip)            AS uc_src_ip,
+        NDV(dst_ip)            AS uc_dst_ip,
+        NDV(dst_domain)        AS uc_dst_domain,
+        NDV(http_referer)      AS uc_http_referer,
+        NDV(app_service)       AS uc_app_service,
+        NDV(app_name)          AS uc_app_name,
+        NDV(app_proc)          AS uc_app_proc,
+        NDV(file_name)         AS uc_file_name,
+        NDV(file_hash)         AS uc_file_hash,
+        NDV(threat_type)       AS uc_threat_type,
+        NDV(threat_name)       AS uc_threat_name,
+        NDV(threat_pattern)    AS uc_threat_pattern,
+        NDV(threat_action)     AS uc_threat_action
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747279440)
+      AND itime <= FROM_UNIXTIME(1747283040)
+    LIMIT 1000
+) t;
+
+-- left menu changed1
+-- 1 row in set (3.81 sec)
+-- PREAGGREGATION: ON
+SELECT *
+FROM (
+    SELECT 
+        UNIX_TIMESTAMP(MIN(itime)) AS itime_min,  -- here
+        UNIX_TIMESTAMP(MAX(itime)) AS itime_max,  -- here
+        SUM(logcnt) AS logcnt,
+        
+        NDV(data_sourceid)     AS uc_data_sourceid,
+        NDV(epid)              AS uc_epid,
+        NDV(euid)              AS uc_euid,
+        NDV(event_id)          AS uc_event_id,
+        NDV(event_action)      AS uc_event_action,
+        NDV(src_ip)            AS uc_src_ip,
+        NDV(dst_ip)            AS uc_dst_ip,
+        NDV(dst_domain)        AS uc_dst_domain,
+        NDV(http_referer)      AS uc_http_referer,
+        NDV(app_service)       AS uc_app_service,
+        NDV(app_name)          AS uc_app_name,
+        NDV(app_proc)          AS uc_app_proc,
+        NDV(file_name)         AS uc_file_name,
+        NDV(file_hash)         AS uc_file_hash,
+        NDV(threat_type)       AS uc_threat_type,
+        NDV(threat_name)       AS uc_threat_name,
+        NDV(threat_pattern)    AS uc_threat_pattern,
+        NDV(threat_action)     AS uc_threat_action
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747279440)
+      AND itime <= FROM_UNIXTIME(1747283040)
+    LIMIT 1000
+) t;
+
+
+-- left menu changed2
+-- 1 row in set (2.25 sec)
+-- PREAGGREGATION: ON   rollup: __root_siem_siem
+SELECT *
+FROM (
+    SELECT 
+        MIN(UNIX_TIMESTAMP(itime)) AS itime_min,
+        MAX(UNIX_TIMESTAMP(itime)) AS itime_max,
+        count(id) AS logcnt,   -- here
+        
+        NDV(data_sourceid)     AS uc_data_sourceid,
+        NDV(epid)              AS uc_epid,
+        NDV(euid)              AS uc_euid,
+        NDV(event_id)          AS uc_event_id,
+        NDV(event_action)      AS uc_event_action,
+        NDV(src_ip)            AS uc_src_ip,
+        NDV(dst_ip)            AS uc_dst_ip,
+        NDV(dst_domain)        AS uc_dst_domain,
+        NDV(http_referer)      AS uc_http_referer,
+        NDV(app_service)       AS uc_app_service,
+        NDV(app_name)          AS uc_app_name,
+        NDV(app_proc)          AS uc_app_proc,
+        NDV(file_name)         AS uc_file_name,
+        NDV(file_hash)         AS uc_file_hash,
+        NDV(threat_type)       AS uc_threat_type,
+        NDV(threat_name)       AS uc_threat_name,
+        NDV(threat_pattern)    AS uc_threat_pattern,
+        NDV(threat_action)     AS uc_threat_action
+    FROM (
+        SELECT 3 AS adom_oid, *
+        -- FROM adom3_sifv_5min  -- here
+        FROM __root_siem_siem  -- here
+        where adomid=3         -- here
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747279440)
+      AND itime <= FROM_UNIXTIME(1747283040)
+    LIMIT 1000
+) t;
+
+
+-- middle list
+SELECT *
+FROM (
+    SELECT
+        threat_name,
+        SUM(logcnt) AS logcnt,
+        (SUM(logcnt) * 100) / (
+            SELECT SUM(logcnt)
+            FROM (
+                SELECT 3 AS adom_oid, *
+                FROM adom3_sifv_5min
+            ) AS tt
+            WHERE itime >= FROM_UNIXTIME(1747267920)
+              AND itime <= FROM_UNIXTIME(1747278720)
+        ) AS perc,
+        SUM(sessions) AS sessions,
+        SUM(session_block) AS session_block,
+        SUM(threat_score_sum) AS threat_score_sum,
+        SUM(net_sentbytes_sum) AS net_sentbytes_sum,
+        MIN(net_sentbytes_min) AS net_sentbytes_min,
+        MAX(net_sentbytes_max) AS net_sentbytes_max,
+       	AVG(net_sentbytes_avg) AS net_sentbytes_avg,
+        MIN(net_sessionduration_min) AS net_sessionduration_min,
+        MAX(net_sessionduration_max) AS net_sessionduration_max,
+        AVG(net_sessionduration_avg) AS net_sessionduration_avg
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747267920)
+      AND itime <= FROM_UNIXTIME(1747278720)
+    GROUP BY threat_name
+    ORDER BY logcnt DESC
+    LIMIT 500
+) t;
+
+
+-- middle list changed
+SELECT *
+FROM (
+    SELECT
+        threat_name,
+        SUM(logcnt) AS logcnt,
+        (SUM(logcnt) * 100) / (
+            SELECT SUM(logcnt)
+            FROM (
+                SELECT 3 AS adom_oid, *
+                FROM adom3_sifv_5min
+            ) AS tt
+            WHERE itime >= FROM_UNIXTIME(1747267920)
+              AND itime <= FROM_UNIXTIME(1747278720)
+        ) AS perc,
+        SUM(sessions) AS sessions,
+        SUM(session_block) AS session_block,
+        SUM(threat_score_sum) AS threat_score_sum,
+        SUM(net_sentbytes_sum) AS net_sentbytes_sum,
+        MIN(net_sentbytes_min) AS net_sentbytes_min,
+        MAX(net_sentbytes_max) AS net_sentbytes_max,
+        sum(net_sentbytes_sum)/SUM(logcnt) AS net_sentbytes_avg,
+        -- AVG(net_sentbytes_avg) AS net_sentbytes_avg,
+        MIN(net_sessionduration_min) AS net_sessionduration_min,
+        MAX(net_sessionduration_max) AS net_sessionduration_max,
+        sum(net_sessionduration_sum)/SUM(logcnt) AS net_sessionduration_avg
+        -- AVG(net_sessionduration_avg) AS net_sessionduration_avg
+    FROM (
+        SELECT 3 AS adom_oid, *
+        FROM adom3_sifv_5min
+    ) AS t
+    WHERE itime >= FROM_UNIXTIME(1747267920)
+      AND itime <= FROM_UNIXTIME(1747278720)
+    GROUP BY threat_name
+    ORDER BY logcnt DESC
+    LIMIT 500
+) t;

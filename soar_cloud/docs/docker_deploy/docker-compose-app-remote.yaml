@@ -1,0 +1,689 @@
+version: '3.8'
+services:
+
+  redis:
+    labels:
+      co.elastic.logs/enabled: "true"
+    hostname: redis
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-redis:25.2.b
+    tty: true
+    privileged: true
+    ports:
+      - 6379:6379
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  # redis:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   build: ./redis_cluster
+  #   container_name: redis-primary
+  #   hostname: redis-primary
+  #   image: xf-redis-cluster:25.2.b
+  #   tty: true
+  #   privileged: true
+  #   ports:
+  #     - 6379:6379
+  #   command: redis-server /usr/local/etc/redis/redis-primary.conf
+  # redis-replica1:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   container_name: redis-replica1
+  #   hostname: redis-replica1
+  #   build: ./redis_cluster
+  #   image: xf-redis-cluster:25.2.b
+  #   tty: true
+  #   privileged: true
+  #   entrypoint: redis-server /usr/local/etc/redis/redis-replica1.conf
+  #   ports:
+  #     - 6379
+  #   depends_on:
+  #     - redis
+  # redis-replica2:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   container_name: redis-replica2
+  #   hostname: redis-replica2
+  #   build: ./redis_cluster
+  #   image: xf-redis-cluster:25.2.b
+  #   tty: true
+  #   privileged: true
+  #   entrypoint: redis-server /usr/local/etc/redis/redis-replica2.conf
+  #   ports:
+  #     - 6379
+  #   depends_on:
+  #     - redis
+
+  rabbitmq:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-rabbitmq:25.2.b
+    ports:
+      - "5672:5672"
+      - "5673:5673"
+      - "5671:5671"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/
+      - rabbitmq_logs:/var/log/rabbitmq
+    configs:
+      - source: rmq_ca_cert
+        target: /etc/rabbitmq/ca_certificate.pem
+      - source: rmq_server_cert
+        target: /etc/rabbitmq/server_certificate.pem
+      - source: rmq_private_key
+        target: /etc/rabbitmq/private_key.pem
+
+  # rabbitmq:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   container_name: rabbitmq-node1
+  #   hostname: rabbitmq-node1
+  #   build: ./rabbitmq_cluster
+  #   image: xf-rabbitmq-cluster:25.2.b
+  #   environment:
+  #     RABBITMQ_NODENAME: rabbit@rabbitmq-node1
+  #   networks:
+  #     default:
+  #       aliases:
+  #         - rabbitmq
+  #   entrypoint: /usr/local/bin/cluster-entrypoint.sh
+  #   ports:
+  #     - "5672:5672"
+  #     - "5673:5673"
+  #     - "5671:5671"
+  #     - "15672:15672"
+  #   volumes:
+  #     - rabbitmq_node1_data:/var/lib/rabbitmq/
+  #     - rabbitmq_node1_logs:/var/log/rabbitmq
+  #   configs:
+  #     - source: rmq_ca_cert
+  #       target: /etc/rabbitmq/ca_certificate.pem
+  #     - source: rmq_server_cert
+  #       target: /etc/rabbitmq/server_certificate.pem
+  #     - source: rmq_private_key
+  #       target: /etc/rabbitmq/private_key.pem
+  # rabbitmq-node2:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   container_name: rabbitmq-node2
+  #   hostname: rabbitmq-node2
+  #   build: ./rabbitmq_cluster
+  #   image: xf-rabbitmq-cluster:25.2.b
+  #   environment:
+  #     RABBITMQ_NODENAME: rabbit@rabbitmq-node2
+  #     JOIN_CLUSTER_HOST: rabbitmq-node1
+  #   networks:
+  #     default:
+  #       aliases:
+  #         - rabbitmq
+  #   ports:
+  #     - "5672"
+  #     - "5673"
+  #     - "5671"
+  #     - "15672"
+  #   depends_on:
+  #     - rabbitmq
+  #   entrypoint: /usr/local/bin/cluster-entrypoint.sh
+  #   volumes:
+  #     - rabbitmq_node2_data:/var/lib/rabbitmq/
+  #     - rabbitmq_node2_logs:/var/log/rabbitmq
+  #   configs:
+  #     - source: rmq_ca_cert
+  #       target: /etc/rabbitmq/ca_certificate.pem
+  #     - source: rmq_server_cert
+  #       target: /etc/rabbitmq/server_certificate.pem
+  #     - source: rmq_private_key
+  #       target: /etc/rabbitmq/private_key.pem
+  # rabbitmq-node3:
+  #   labels:
+  #     co.elastic.logs/enabled: "true"
+  #   container_name: rabbitmq-node3
+  #   hostname: rabbitmq-node3
+  #   build: ./rabbitmq_cluster
+  #   image: xf-rabbitmq-cluster:25.2.b
+  #   environment:
+  #     RABBITMQ_NODENAME: rabbit@rabbitmq-node3
+  #     JOIN_CLUSTER_HOST: rabbitmq-node1
+  #   networks:
+  #     default:
+  #       aliases:
+  #         - rabbitmq
+  #   ports:
+  #     - "5672"
+  #     - "5673"
+  #     - "5671"
+  #     - "15672"
+  #   depends_on:
+  #     - rabbitmq
+  #   entrypoint: /usr/local/bin/cluster-entrypoint.sh
+  #   volumes:
+  #     - rabbitmq_node3_data:/var/lib/rabbitmq/
+  #     - rabbitmq_node3_logs:/var/log/rabbitmq
+  #   configs:
+  #     - source: rmq_ca_cert
+  #       target: /etc/rabbitmq/ca_certificate.pem
+  #     - source: rmq_server_cert
+  #       target: /etc/rabbitmq/server_certificate.pem
+  #     - source: rmq_private_key
+  #       target: /etc/rabbitmq/private_key.pem
+
+  db:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-postgres:25.2.b
+    shm_size: 2gb
+    tty: true
+    privileged: true
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_MULTIPLE_DATABASES=auth,audit,appmanager,integration,workflow,tip,store
+      - POSTGRES_USER=cyberpgsql
+      - POSTGRES_PASSWORD=changeme
+  cdb:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-clickhouse:25.2.b
+    tty: true
+    privileged: true
+    ports:
+     - "8123:8123"
+     - "9000:9000"
+     - "9009:9009"
+    restart: unless-stopped
+#    environment:
+#     - CLICKHOUSE_DB=public
+#     - CLICKHOUSE_USER=clickhouse
+#     - CLICKHOUSE_PASSWORD=fastdbda100x
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse/data
+      - clickhouse_log:/var/log/clickhouse
+  ingress:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-ingress:25.2.b
+    tty: true
+    ports:
+      - 443:443
+    networks:
+      default:
+        aliases:
+          - automationui
+          - platformui
+          - xfui
+          - tipui
+    depends_on:
+      - db
+      - auth
+      - audit
+      - appmanager
+      - workflow
+      - integration
+      - xf-widget
+      - livesync
+      - tip
+    volumes:
+      - ./xf-ui/dist:/opt/xf-ui
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+
+  xf-widget:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-widget:25.2.b
+    tty: true
+    volumes:
+      - ./xf-widget/dist:/opt/xf-widget
+
+  auth:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-auth:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./auth:/opt/auth
+#      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - db
+  audit:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-audit:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./audit:/opt/audit
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - db
+      - auth
+  audit-taskrunner:
+    labels:
+      co.elastic.logs/enabled: "true"
+    build:
+      context: ./audit
+      dockerfile: Dockerfile-TaskRunner
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-audit-taskrunner:25.2.b
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./audit:/opt/audit
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - audit
+  appmanager:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-appmanager:25.2.b
+    environment:
+      - TYPE=appmanager
+      - BUILD_ENV=local
+    tty: true
+    user: root
+    volumes:
+      - ./appmanager:/opt/appmanager
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - db
+      - auth
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+      - source: build-info
+        target: /opt/xf/configs/build-info.json
+  appmanager-taskrunner:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-appmanager:25.2.b
+    environment:
+      - TYPE=appmanager-taskrunner
+    tty: true
+    user: root
+    extra_hosts:
+      - "repo.fortisoar.fortinet.com:10.132.255.153" # Dev server
+    volumes:
+      - ./appmanager:/opt/appmanager
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - appmanager
+      - rabbitmq
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+  integration:
+    labels:
+      co.elastic.logs/enabled: "true"
+    #platform: linux/amd64
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-integration:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./integration/integration:/opt/integration
+      - ./integration/integration/connector_files:/opt/integration/connector_files/
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    configs:
+      - source: rmq_ca_cert
+        target: /opt/xf/configs/ca_certificate.pem
+      - source: rmq_ca_private_key
+        target: /opt/xf/configs/ca_private_key.pem
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - db
+      - auth
+  workflow:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-workflow:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./workflow/sealab:/opt/workflow
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - db
+      - auth
+  workflow-execenv-workflow:
+    labels:
+      co.elastic.logs/enabled: "true"
+    build:
+      context: ./workflow
+      dockerfile: Dockerfile-WorkflowExecEnvWorkflow
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-workflow-execenv-workflow:25.2.b
+    environment:
+      - ENV=dev
+      - TYPE=workflow-execenv-workflow
+      - IS_EXEC_ENV=1
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./workflow/sealab:/opt/workflow
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - db
+      - rabbitmq
+      - redis
+  rule-engine:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-workflow:25.2.b
+    environment:
+      - ENV=dev
+      - TYPE=rule-engine
+    tty: true
+    user: root
+    volumes:
+      - ./workflow/sealab:/opt/workflow
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - workflow
+      - rabbitmq
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+  workflow-execenv-integration:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-integration:25.2.b
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./integration/integration:/opt/integration
+      - ./integration/integration/connector_files:/opt/integration/connector_files/
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.11/site-packages/xfutils
+    environment:
+      - IS_EXEC_ENV=1
+    configs:
+      - source: rmq_ca_cert
+        target: /opt/xf/configs/ca_certificate.pem
+      - source: rmq_ca_private_key
+        target: /opt/xf/configs/ca_private_key.pem
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - db
+      - rabbitmq
+      - redis
+      # Added 'integration' in depends_on, as we need 'xf-integration' container image
+      - integration
+  workflow-scheduler:
+    labels:
+      co.elastic.logs/enabled: "true"
+    build:
+      context: ./workflow
+      dockerfile: Dockerfile-WorkflowScheduler
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-workflow-scheduler:25.2.b
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./workflow/sealab:/opt/workflow
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - workflow
+  livesync:
+    labels:
+      co.elastic.logs/enabled: "true"
+    tty: true
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-livesync:25.2.b
+    environment:
+      - ENV=dev
+      - TYPE=platform
+    # In production, controlplane will run as xfabric user, but since we are mounting file system path as
+    # /container volume, need to run as root
+    user: root
+    volumes:
+      - ./live-sync/container:/container
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - rabbitmq
+      - redis
+  tip:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-tip:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./tip:/opt/tip
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.11/site-packages/xfutils
+    configs:
+      - source: appliance_private_key
+        target: /opt/xf/configs/appliance_private_key.pem
+    depends_on:
+      - db
+      - auth
+  store:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-store:25.2.b
+    environment:
+      - BUILD_ENV=local
+    tty: true
+    # In production, auth will run as pbaas user, but since we are mounting file system path as
+    # /auth volume, need to run as root
+    user: root
+    volumes:
+      - ./store:/opt/store
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - db
+      - auth
+
+#  platformui:
+#    build:
+#      context: ./
+#      dockerfile: xf-ui/deployment/Dockerfile-Platform
+#    image: xf-platform:25.2.b
+#    tty: true
+#    user: root
+#    # volumes:
+#    #   - ./xf-ui/dist/:/opt/xf-ui/
+#    depends_on:
+#      - auth
+#      - appmanager
+#  automationui:
+#    build:
+#      context: ./
+#      dockerfile: xf-ui/deployment/Dockerfile-Automate
+#    image: xf-automation:25.2.b
+#    tty: true
+#    user: root
+#    # volumes:
+#    #   - ./xf-ui/dist/automation:/opt/xf-ui/automation
+#    depends_on:
+#      - platformui
+#      - auth
+#      - appmanager
+
+  metrics:
+    labels:
+      co.elastic.logs/enabled: "true"
+    image: dops-jfrog.fortinet-us.com/faz-bd-docker/xf-metrics:25.2.b
+    tty: true
+    #
+    # In production, auth will run as xfabric user, but since we are mounting file system path as
+    # /opt/metrics volume, need to run as root.
+    #
+    user: root
+    environment:
+      - ENV=dev
+    volumes:
+      - ./metrics:/opt/metrics
+      - ./xf-utils/src/xfutils:/usr/local/lib/python3.12/site-packages/xfutils
+    depends_on:
+      - redis
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--log.level=debug'  # Default is info
+    depends_on:
+      - postgres-exporter
+      - redis-exporter
+      - rabbitmq
+    profiles:
+      - monitoring
+  
+  grafana:
+    image: grafana/grafana:9.5.20
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+    environment:
+      GF_USERS_DEFAULT_THEME: light
+    depends_on:
+      - prometheus
+      - elasticsearch
+    profiles:
+      - monitoring
+
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"
+    profiles:
+      - monitoring
+    privileged: true
+    pid: host
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=true"
+      - "ELASTIC_PASSWORD=changeme"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    profiles:
+      - monitoring
+
+  # https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.14.3
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - filebeat_data:/usr/share/filebeat/data
+    command: filebeat -e -strict.perms=false
+    depends_on:
+      - elasticsearch
+    profiles:
+      - monitoring
+  
+  postgres-exporter:
+    image: dprometheuscommunity/postgres-exporter:master
+    environment:
+      DATA_SOURCE_NAME: "postgresql://cyberpgsql:changeme@db:5432/?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - db
+    profiles:
+      - monitoring
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=changeme
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  clickhouse_log:
+  prometheus_data:
+  grafana_data:
+  es_data:
+  filebeat_data:
+  rabbitmq_data:
+  rabbitmq_logs:
+  rabbitmq_node1_data:
+  rabbitmq_node1_logs:
+  rabbitmq_node2_data:
+  rabbitmq_node2_logs:
+  rabbitmq_node3_data:
+  rabbitmq_node3_logs:
+
+networks:
+  default:
+    name: xf_default
+    external: true
+
+configs:
+  rmq_ca_cert:
+    file: ./rabbitmq/ca_certificate.pem
+  rmq_ca_private_key:
+    file: ./rabbitmq/ca_private_key.pem
+  rmq_server_cert:
+    file: ./rabbitmq/server_certificate.pem
+  rmq_private_key:
+    file: ./rabbitmq/private_key.pem
+  appliance_private_key:
+    file: ./appliance/appliance_private_key.pem
+  build-info:
+    file: ./build_info/build-info.json

@@ -1,0 +1,145 @@
+https://docs.starrocks.io/docs/using_starrocks/Materialized_view-single_table/
+
+-- success sync
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sync1`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sync1` 
+AS SELECT 
+base.`adomid`, 
+time_slice(base.`itime`, INTERVAL 5 minute, floor) AS `itime`, 
+base.`src_ip`, 
+sum(cast(if(bitAnd(logflag, 1) > 0, 1, 0) as bigint)) AS sessions,
+count(id) AS `logcnt`
+FROM `__root_siem_siem` base
+GROUP BY base.`adomid`, time_slice(base.`itime`, INTERVAL 5 minute, floor), base.`src_ip`;
+
+-- hint [_SYNC_MV_]:
+select * from xl_siem_5min_mv_sync1 [_SYNC_MV_] limit 2;
+DESC __root_siem_siem ALL;
+
+-- sync mv xl_siem_5min_mv_sync2
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sync2`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_5min_mv_sync2` 
+AS SELECT 
+`adomid`, 
+time_slice(`itime`, INTERVAL 5 minute, floor) AS `itime_agg`, 
+`src_ip`, 
+sum(cast(if(bitAnd(logflag, 1) > 0, 1, 0) as bigint)) AS sessions,
+count(id) AS `logcnt`
+FROM `__xl_siem_siem_tbl`
+GROUP BY `adomid`, time_slice(`itime`, INTERVAL 5 minute, floor), `src_ip`;
+
+-- check sync mv
+SHOW ALTER MATERIALIZED VIEW\G
+DESC __xl_siem_siem_tbl ALL;
+select * from xl_siem_5min_mv_sync2 [_SYNC_MV_] limit 2;
+
+
+
+-- sync MV 1hour based on __xl_siem_siem_tbl
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_1hour_mv_sync2`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_1hour_mv_sync2` 
+AS SELECT 
+`adomid`, 
+time_slice(`itime`, INTERVAL 1 hour, floor) AS `itime_1hour`, 
+`src_ip`, 
+sum(cast(if(bitAnd(logflag, 1) > 0, 1, 0) as bigint)) AS sessions,
+count(id) AS `logcnt`
+FROM `__xl_siem_siem_tbl`
+GROUP BY `adomid`, time_slice(`itime`, INTERVAL 1 hour, floor), `src_ip`;
+
+-- 
+SHOW ALTER MATERIALIZED VIEW\G
+
+
+-- =============================================
+-- wrong steps!!!!
+-- success but it was async
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_1hour_mv_sync`
+(
+    `adomid`,
+    `itime_hour`,
+    `src_ip`,
+    `logcnt`
+)
+PARTITION BY `itime_hour`
+DISTRIBUTED BY RANDOM
+PROPERTIES (
+    "replicated_storage" = "true",
+    "replication_num" = "1",
+    "storage_medium" = "HDD"
+)
+AS
+SELECT
+    base.`adomid`,
+    date_trunc('hour', base.`itime`) AS `itime_hour`,
+    base.`src_ip`,
+    count(*) AS `logcnt`
+FROM `__root_siem_siem` base
+GROUP BY
+    base.`adomid`,
+    date_trunc('hour', base.`itime`),
+    base.`src_ip`;
+
+
+    CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_1min_mv_sync`
+(
+    `adomid`,
+    `itime_min`,
+    `src_ip`,
+    `logcnt`
+)
+PARTITION BY `itime_min` 
+DISTRIBUTED BY RANDOM
+REFRESH ASYNC EVERY (INTERVAL 1 MINUTE)
+PROPERTIES (
+    "replicated_storage" = "true",
+    "replication_num" = "1",
+    "storage_medium" = "HDD"
+)
+AS
+SELECT
+    base.`adomid`,
+    date_trunc('minute', base.`itime`) AS `itime_min`,  
+    base.`src_ip`,
+    count(*) AS `logcnt`
+FROM `__root_siem_siem` base
+GROUP BY
+    base.`adomid`,
+    date_trunc('minute', base.`itime`),
+    base.`src_ip`;
+
+
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_5min_mv_sync`;
+
+-- Could create successfully , but could not build sucessfully, Msg: slotDesc is null, slot = mv_itime_agg, column = mv_itime_hour
+-- sync mv: xl_siem_1hour_mv_sync2
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_1hour_mv_sync2`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS xl_siem_1hour_mv_sync2
+AS
+SELECT
+  adomid,
+  time_slice(mv_itime_agg, INTERVAL 1 hour, FLOOR) AS itime_hour,
+  src_ip,
+  SUM(mv_sessions) AS total_sessions,
+  SUM(mv_count_id) AS total_logcnt
+FROM xl_siem_5min_mv_sync2 [_SYNC_MV_]
+GROUP BY
+  adomid,
+  time_slice(mv_itime_agg, INTERVAL 1 hour, FLOOR),
+  src_ip;
+
+-- sync MV 1hour based on __xl_siem_siem_tbl ( partitioned )
+-- ERROR 1064 (HY000): Getting syntax error. Detail message: 'SYNC refresh type' cannot support 'PARTITION BY' in materialized view.
+DROP MATERIALIZED VIEW IF EXISTS `xl_siem_1hour_mv_sync2_parted`;
+CREATE MATERIALIZED VIEW IF NOT EXISTS `xl_siem_1hour_mv_sync2_parted` 
+PARTITION BY date_trunc('day', `itime_1hour`)
+AS SELECT 
+`adomid`, 
+time_slice(`itime`, INTERVAL 1 hour, floor) AS `itime_1hour`, 
+`src_ip`, 
+sum(cast(if(bitAnd(logflag, 1) > 0, 1, 0) as bigint)) AS sessions,
+count(id) AS `logcnt`
+FROM `__xl_siem_siem_tbl`
+GROUP BY `adomid`, time_slice(`itime`, INTERVAL 1 hour, floor), `src_ip`;
+
+-- Msg: Alter job conflicts with partition creation, for more details please check https://docs.starrocks.io/docs/faq/Others#how-can-i-prevent-expression-partition-conflicts-caused-by-concurrent-execution-of-loading-tasks-and-partition-creation-tasks
