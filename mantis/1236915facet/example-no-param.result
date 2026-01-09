@@ -1,0 +1,24 @@
+bd-controller$ sh recreate_facet_table.sh
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+MacBook-Pro:data.catalog lei$ sshpass -p 'fortinet@123' ssh -o StrictHostKeyChecking=no root@10.160.74.120 'chmod +x /data2/xl/recreate_facet_table.sh && /data2/xl/recreate_facet_table.sh'
+Listing all storage facet results...
+Storage ID: root
+Hash partition settings: | PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+----------------------------------------
+Storage ID: uds7wfxf
+Hash partition settings: | PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+----------------------------------------
+Storage ID: sovin1oh
+Hash partition settings: | PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+----------------------------------------
+Storage ID: h4xgcmrl
+Hash partition settings: | PARTITION BY HASH (row_no) PARTITIONS 6, RANGE (start_time) (...)                                                                                                                                |
+----------------------------------------
+
+
+
+
+
