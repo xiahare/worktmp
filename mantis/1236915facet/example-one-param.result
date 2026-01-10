@@ -1,0 +1,624 @@
+bd-controller$ sh recreate_facet_table.sh sovin1oh
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+MacBook-Pro:data.catalog lei$ sshpass -p 'fortinet@123' ssh -o StrictHostKeyChecking=no root@10.160.74.120 '/data2/xl/recreate_facet_table.sh sovin1oh'
+Recreating facet tables for storage_id: sovin1oh
+Step 0: Checking if storage_id exists in Consul...
+storage_id found in Consul.
+Step 1: Dropping facet tables...
+Previous hash partition settings:
+| PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+Starting Impala Shell with no authentication using Python 2.7.18
+Warning: live_progress only applies to interactive shell sessions, and is being skipped for now.
+Opened TCP connection to blade-198-18-1-4.node.fazbd.consul:21050
+Connected to blade-198-18-1-4.node.fazbd.consul:21050
+Server version: impalad version 4.4.1-RELEASE RELEASE (build 6edbf57651aa84652e0121fe9055e53c4d350871)
+Query: use `db_log_public`
+Query: use `db_log_public`
+Query: drop table if exists __sovin1oh_facet_result
++-------------------------+
+| summary                 |
++-------------------------+
+| Table has been dropped. |
++-------------------------+
+Fetched 1 row(s) in 0.20s
+Query: drop table if exists __sovin1oh_facet_process
++-------------------------+
+| summary                 |
++-------------------------+
+| Table has been dropped. |
++-------------------------+
+Tables dropped.
+Step 2: Refreshing hash partition configurations...
+Fetched 1 row(s) in 0.20s
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  4059    0  4059    0     0  36900      0 --:--:-- --:--:-- --:--:-- 36900
+{"createdTimestamp":1767728765357,"updatedTimestamp":1767904915067,"status":"ready","code":"","message":"","tenantId":"db_log_public","storageId":"sovin1oh","storageName":"S2 (sovin1oh)","description":null,"action":"create","properties":{"storageTypeVersion":"4","storageGroupType":"sparse","customStorageGroupTypeDetails":""},"storageTypeConfig":"{\"type\":\"sparse\",\"display\":\"Many-ADOM Sparse\",\"version\":\"4\",\"description\":\"Optimized for cases when ADOM is enabled and data are sparsely distributed across many ADOMs.\",\"defaultStrategy\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"''+(math:round(math:floor(data_hash_partition/2.0)) < 2 ? 2 : math:round(math:floor(data_hash_partition/2.0)))\"},\"hashPartitionColumns\":\"id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":3,\"unit\":\"day\",\"replicas\":\"3\"},\"tablesStrategy\":{\"facet_result\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"data_hash_partition\"},\"hashPartitionColumns\":\"row_no\",\"rangePartitionColumns\":\"start_time\",\"partitionPeriod\":3,\"unit\":\"day\",\"replicas\":\"3\"},\"fgt_traffic\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"''+math:round(math:ceil(data_hash_partition/2.0))+';'+math:round(math:ceil(data_hash_partition/2.0))\"},\"hashPartitionColumns\":\"adomid;id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":1,\"unit\":\"day\",\"replicas\":\"3\"},\"fgt_app_ctrl\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"''+math:round(math:ceil(data_hash_partition/2.0))+';'+math:round(math:ceil(data_hash_partition/2.0))\"},\"hashPartitionColumns\":\"adomid;id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":3,\"unit\":\"day\",\"replicas\":\"3\"},\"fgt_webfilter\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"''+math:round(math:ceil(data_hash_partition/2.0))+';'+math:round(math:ceil(data_hash_partition/2.0))\"},\"hashPartitionColumns\":\"adomid;id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":3,\"unit\":\"day\",\"replicas\":\"3\"},\"fgt_event\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"''+math:round(math:ceil(data_hash_partition/2.0))+';'+math:round(math:ceil(data_hash_partition/2.0))\"},\"hashPartitionColumns\":\"adomid;id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":3,\"unit\":\"day\",\"replicas\":\"3\"},\"fgt_hyperscale\":{\"hashPartition\":{\"_handler\":\"exp\",\"data\":\"data_hash_partition\"},\"hashPartitionColumns\":\"id\",\"rangePartitionColumns\":\"itime\",\"partitionPeriod\":1,\"unit\":\"day\",\"replicas\":\"3\"}}}","hotPhase":{"hashPartition":"3","hashPartitionColumns":"id","rangePartitionColumns":"itime","replicas":"3","retentionPeriod":60,"partitionPeriod":3,"unit":"day","diskAllocation":749068716227,"overridePartition":{"fgt_webfilter":{"hashPartition":"3;3","hashPartitionColumns":"adomid;id","rangePartitionColumns":"itime","partitionPeriod":"3","unit":"day","replicas":"3"},"facet_result":{"hashPartition":"6","hashPartitionColumns":"row_no","rangePartitionColumns":"start_time","partitionPeriod":"3","unit":"day","replicas":"3"},"fgt_app_ctrl":{"hashPartition":"3;3","hashPartitionColumns":"adomid;id","rangePartitionColumns":"itime","partitionPeriod":"3","unit":"day","replicas":"3"},"fgt_event":{"hashPartition":"3;3","hashPartitionColumns":"adomid;id","rangePartitionColumns":"itime","partitionPeriod":"3","unit":"day","replicas":"3"},"fgt_hyperscale":{"hashPartition":"6","hashPartitionColumns":"id","rangePartitionColumns":"itime","partitionPeriod":"1","unit":"day","replicas":"3"},"fgt_traffic":{"hashPartition":"3;3","hashPartitionColumns":"adomid;id","rangePartitionColumns":"itime","partitionPeriod":"1","unit":"day","replicas":"3"}},"userOverridePartition":{}},"warmPhase":{"enableWarmPhase":false,"phaseAge":30,"unit":"day","hdfsUrl":null},"coldPhase":{"enableColdPhase":false,"phaseAge":180,"unit":"day"},"poolId":"9cea6beb-b80d-476d-b1e6-b0f664542679","storageTypeVersion":"4","customStorageGroupTypeDetails":"","storageGroupType":"sparse","logsRetentionDisplay":"60 days","diskAllocationDisplay":"697 GB"}Hash partition configurations refreshed.
+Step 3: Recreating facet tables...
+Integrity check started with taskId: integrity_check__72d7ef08-9fcd-4e96-9377-f3c174b8da67
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: running
+Checking task status...
+Current status: success
+Task finished with status: success
+Result: {
+  "taskId": "integrity-check.c3242e25-3983-43f5-ab1c-bdf261004a42",
+  "success": true,
+  "message": null,
+  "details": {},
+  "subResults": [
+    {
+      "taskId": "schema-check.6bd95f89-6355-4063-a366-be11666ae435",
+      "success": true,
+      "message": null,
+      "details": {},
+      "subResults": [
+        {
+          "taskId": "check-kudu-database.ab0bff31-8b29-4cc1-b876-69a05e7fa59c",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "enter-adom-safe-mode.fbe50bd4-41db-406a-af56-9da19c7373fa",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "kudu-tables-views-schema-check.3ba84b67-ff9f-4353-8127-0f8ddfd30fa3",
+          "success": true,
+          "message": null,
+          "details": {
+            "Kudu table schema was consistent with the newest version: 141 tables have been checked, no mismatch was detected": "passed"
+          },
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "kudu-recover-corrupted-tablets.3451494c-97aa-45a6-81f7-f9eadbe17c4b",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "siem-tables-views-schema-check.96c1469f-1b98-45c7-ac2a-c17d0f2f56fb",
+          "success": true,
+          "message": null,
+          "details": {
+            "SIEM disabled": "task skipped."
+          },
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "siem-fvmv-schema-check.13866b44-ef2e-4c51-bea9-412087094636",
+          "success": true,
+          "message": null,
+          "details": {
+            "SIEM disabled": "task skipped."
+          },
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "iceberg-tables-views-schema-check.2535fe79-8b11-4ec4-bbfc-c801e50c870d",
+          "success": true,
+          "message": null,
+          "details": {
+            "External storage disabled": "task skipped."
+          },
+          "subResults": [],
+          "outputData": {}
+        },
+        {
+          "taskId": "exit-adom-safe-mode.46085d3e-17c4-4a7e-a714-f785dffac442",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [],
+          "outputData": {}
+        }
+      ],
+      "outputData": {}
+    },
+    {
+      "taskId": "storages-integrity-check.57571b04-fce8-4885-97f8-d0115f4a02c7",
+      "success": true,
+      "message": null,
+      "details": {},
+      "subResults": [
+        {
+          "taskId": "storage-integrity-check.8c23c653-c9b4-4064-a015-f4336d1c4c89",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [
+            {
+              "taskId": "kudu-integrity-check.1c9c264e-3c72-4048-9d60-d40d17513113",
+              "success": true,
+              "message": null,
+              "details": {},
+              "subResults": [
+                {
+                  "taskId": "enter-adom-safe-mode.1c31b2fa-3380-4d4a-b91d-412e7d5d5a79",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-facet-tables.945cbac7-c19e-438a-a2b2-28abec32f54a",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-table-and-view.b88280e6-d73f-40d1-9503-fe9800af64a4",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-adom-view.9d5c6903-0031-4ba9-acef-ebc0b22e48ae",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [
+                    {
+                      "taskId": "create-kudu-adom-view.8a29a76c-b5be-4d15-856d-65121fc4aa1d",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.dac67e27-e940-412d-af97-3d44eb8c7bed",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.9fc10ddf-c304-44f5-b17d-c8523fc73d12",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.6dcb5089-b5f8-4103-a66d-2da8fff5f9b9",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.10fec9e7-5383-48fa-96e4-281c95af2cf5",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.56198879-7adb-492d-9892-c488e3615615",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.551286e4-b6a3-4306-9720-f7d6b271ab6d",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.01c7d8de-e4a0-41b9-bb86-6121a2b74e8e",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.ac524bfe-f633-408f-95df-b109883a52f6",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.2bb6aebd-e151-4e08-9941-5e960b206525",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.afc71bd4-eae1-4dc2-b16e-f33a08b8c2d9",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.a79b30fd-50b8-4ba8-a082-35b0749d68a4",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.6b5401aa-8445-4c8d-a0f5-b8f49c9301a4",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.89fc08b2-04a6-49d1-8137-11a251dbbb33",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    },
+                    {
+                      "taskId": "create-kudu-adom-view.d2c25cb0-0058-440e-b0df-9158732cb8ab",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    }
+                  ],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "exit-adom-safe-mode.b6b4dc1d-15ae-4035-a794-4a57d9266ba3",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                }
+              ],
+              "outputData": {}
+            },
+            {
+              "taskId": "clickhouse-integrity-check-wrap.ca498ae4-d157-4617-82b9-c754eee56167",
+              "success": true,
+              "message": "Condition check = false, but no false flow defined.",
+              "details": {},
+              "subResults": [],
+              "outputData": {}
+            }
+          ],
+          "outputData": {}
+        },
+        {
+          "taskId": "storage-integrity-check.e2c0c71b-d5c3-4591-b7de-99fe325b1325",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [
+            {
+              "taskId": "kudu-integrity-check.4a370b87-762c-4466-80b0-643ad95072c9",
+              "success": true,
+              "message": null,
+              "details": {},
+              "subResults": [
+                {
+                  "taskId": "enter-adom-safe-mode.76fdd108-eed9-4b2a-b407-d33b4d6a6439",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-facet-tables.9c3e17b7-bee1-4b0c-a5ee-dd6dc0b8ba27",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-table-and-view.1835406a-539b-4c82-8911-7c22850800d6",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-adom-view.426c05ae-8d52-488b-bc4e-5875ce0a29b3",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "exit-adom-safe-mode.56100468-2782-4148-86e8-dd658ee67fab",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                }
+              ],
+              "outputData": {}
+            },
+            {
+              "taskId": "clickhouse-integrity-check-wrap.edeaff91-e6fe-4208-877e-442157ef1700",
+              "success": true,
+              "message": "Condition check = false, but no false flow defined.",
+              "details": {},
+              "subResults": [],
+              "outputData": {}
+            }
+          ],
+          "outputData": {}
+        },
+        {
+          "taskId": "storage-integrity-check.bcfd45e0-14f8-4003-86a1-096fe0d3f3ee",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [
+            {
+              "taskId": "kudu-integrity-check.5634e605-ab31-4066-8757-217c7ea8a5df",
+              "success": true,
+              "message": null,
+              "details": {},
+              "subResults": [
+                {
+                  "taskId": "enter-adom-safe-mode.82828f6b-25b7-49ae-9d12-814ed5b4eac7",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-facet-tables.c8b6375a-63b9-4875-b5e5-22a760cfb787",
+                  "success": true,
+                  "message": null,
+                  "details": {
+                    "Add future partitions for __sovin1oh_facet_result": "passed",
+                    "Add future partitions for __sovin1oh_facet_process": "passed",
+                    "Create facet table: __sovin1oh_facet_result": "passed",
+                    "Create facet table: __sovin1oh_facet_process": "passed"
+                  },
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-table-and-view.46fd0ea3-8d34-4956-8fb7-c8f5f1badecd",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-adom-view.c63f9597-2cc4-4402-828c-b0e9236b3508",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [
+                    {
+                      "taskId": "create-kudu-adom-view.8ac3ca0d-204c-4483-8b38-711e3b9c8a22",
+                      "success": true,
+                      "message": null,
+                      "details": {},
+                      "subResults": [],
+                      "outputData": {}
+                    }
+                  ],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "exit-adom-safe-mode.c70335b5-9a9e-490c-a872-ce3253e5b9e4",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                }
+              ],
+              "outputData": {}
+            },
+            {
+              "taskId": "clickhouse-integrity-check-wrap.24be5396-71a0-4caf-8c3a-7e04be371935",
+              "success": true,
+              "message": "Condition check = false, but no false flow defined.",
+              "details": {},
+              "subResults": [],
+              "outputData": {}
+            }
+          ],
+          "outputData": {}
+        },
+        {
+          "taskId": "storage-integrity-check.90baf7da-25cb-43f8-8516-e5716f4af3d3",
+          "success": true,
+          "message": null,
+          "details": {},
+          "subResults": [
+            {
+              "taskId": "kudu-integrity-check.36f4dc79-28af-4a5c-98e6-6bd77fd66279",
+              "success": true,
+              "message": null,
+              "details": {},
+              "subResults": [
+                {
+                  "taskId": "enter-adom-safe-mode.a35a32a8-c3e3-42f4-8a13-f4462e7135c2",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-facet-tables.71d09e47-d39f-42c1-8d2f-1ffac87a1d79",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-table-and-view.35e5d861-fed5-4d81-9980-00ac5468c5e7",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "check-kudu-adom-view.276bff08-d3e5-4c4a-af18-02cc53d35879",
+                  "success": true,
+                  "message": "No data defined, no task will be executed.",
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                },
+                {
+                  "taskId": "exit-adom-safe-mode.8976dbea-7a24-45e3-ae60-fdb4e3e5a937",
+                  "success": true,
+                  "message": null,
+                  "details": {},
+                  "subResults": [],
+                  "outputData": {}
+                }
+              ],
+              "outputData": {}
+            },
+            {
+              "taskId": "clickhouse-integrity-check-wrap.99129a6a-b4ea-4013-8833-4cac5d5a789c",
+              "success": true,
+              "message": "Condition check = false, but no false flow defined.",
+              "details": {},
+              "subResults": [],
+              "outputData": {}
+            }
+          ],
+          "outputData": {}
+        }
+      ],
+      "outputData": {}
+    },
+    {
+      "taskId": "external-storages-integrity-check.aac3b56d-74a0-40d5-a2fc-da16d02ec3f7",
+      "success": true,
+      "message": "No data defined, no task will be executed.",
+      "details": {},
+      "subResults": [],
+      "outputData": {}
+    },
+    {
+      "taskId": "check-leaked-kudu-tables.b848dc79-7619-4181-9acd-229694544d51",
+      "success": true,
+      "message": null,
+      "details": {},
+      "subResults": [],
+      "outputData": {}
+    }
+  ],
+  "outputData": {}
+}
+Step 4: Cleaning Redis cache...
+Redis cache cleanup command sent.
+Step 5: Verifying table creation...
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+Starting Impala Shell with no authentication using Python 2.7.18
+Warning: live_progress only applies to interactive shell sessions, and is being skipped for now.
+Opened TCP connection to blade-198-18-1-4.node.fazbd.consul:21050
+Connected to blade-198-18-1-4.node.fazbd.consul:21050
+Server version: impalad version 4.4.1-RELEASE RELEASE (build 6edbf57651aa84652e0121fe9055e53c4d350871)
+Query: use `db_log_public`
+Query: use `db_log_public`
+Query: show tables like '__sovin1oh_facet_result'
+Fetched 1 row(s) in 0.00s
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+/usr/bin/impala-shell: line 37: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+Starting Impala Shell with no authentication using Python 2.7.18
+Warning: live_progress only applies to interactive shell sessions, and is being skipped for now.
+Opened TCP connection to blade-198-18-1-4.node.fazbd.consul:21050
+Connected to blade-198-18-1-4.node.fazbd.consul:21050
+Server version: impalad version 4.4.1-RELEASE RELEASE (build 6edbf57651aa84652e0121fe9055e53c4d350871)
+Query: use `db_log_public`
+Query: use `db_log_public`
+Query: show tables like '__sovin1oh_facet_process'
+Fetched 1 row(s) in 0.00s
+Tables __sovin1oh_facet_result and __sovin1oh_facet_process successfully recreated.
+Previous hash partition settings:
+| PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+Current hash partition settings:
+| PARTITION BY HASH (row_no) PARTITIONS 6, RANGE (start_time) (...)                                                                                                                                |
+Script finished for storage_id: sovin1oh
+----------------------------------------
+Listing all storage facet results...
+Storage ID: root
+Hash partition settings: | PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+----------------------------------------
+Storage ID: uds7wfxf
+Hash partition settings: | PARTITION BY HASH (hash_id, adomid) PARTITIONS 2, HASH (row_no) PARTITIONS 3, RANGE (start_time) (...)                                                                                           |
+----------------------------------------
+Storage ID: sovin1oh
+Hash partition settings: | PARTITION BY HASH (row_no) PARTITIONS 6, RANGE (start_time) (...)                                                                                                                                |
+----------------------------------------
+Storage ID: h4xgcmrl
+Hash partition settings: | PARTITION BY HASH (row_no) PARTITIONS 6, RANGE (start_time) (...)                                                                                                                                |
+----------------------------------------
+
