@@ -1,0 +1,296 @@
+- name: Template of Logs Export
+  hosts: controllerIp
+  gather_facts: yes
+
+  vars:
+    # --- User Configuration ---
+    #
+    # IMPORTANT: Before running this playbook, you must replace all placeholder
+    # values marked with angle brackets and uppercase letters (e.g., <PLACEHOLDER>).
+    # Sample values are provided in the comments for guidance.
+    # Note: start_date and end_date default to yesterday's date automatically.
+    #
+
+    # 1. Export Parameters
+    # These parameters are passed directly to the 'fazbd-log-export init' command.
+    # The JSON configuration is passed as a positional argument (not with --config flag).
+    # Note: start_date and end_date are automatically calculated based on last_n_days.
+    #
+    # Sample: '{ "adom": "root", "log_type": "hyperscale", "device_type": "fgt", "device_ids": ["FG100FTK20016262","FG100FTK20016263"], "start_date": "2023-08-01", "end_date": "2023-08-01", "format": "csv" }'
+    
+    # Number of days to export logs (default: 1 = yesterday only)
+    # Change this value to export logs from the last N days
+    # Example: 1 = yesterday only, 2 = last 2 days (day before yesterday to yesterday), 7 = last week
+    last_n_days: 1
+    
+    # Export configuration parameters (replace placeholders with actual values)
+    # Example:
+#    export_adom: "root"
+#    export_log_type: "hyperscale"
+#    export_device_type: "fgt"
+#    export_device_id: ["FG180F1234000022","FG100FTK20016263"]
+
+    export_adom: "<ADOM_NAME>"
+    export_log_type: "<LOG_TYPE>"
+    export_device_type: "<DEVICE_TYPE>"
+    export_device_id: "<YOUR_DEVICE_ID_LIST>"
+
+    export_format: "csv"
+
+    # 2. Push (Remote Server) Parameters
+    # Details for the remote server where logs will be pushed.
+    # Example:
+#    push_host_port: "10.105.101.4"
+#    push_user: "root"
+#    push_password: "xxxxxxxx"
+#    push_directory: "/data2/xl/export"
+
+    push_host_port: "<REMOTE_HOST_IP>"
+    push_user: "<REMOTE_USER>"
+    push_password: "<REMOTE_PASSWORD_OR_EMPTY_FOR_KEY>"
+    push_directory: "<REMOTE_PATH>"
+
+    push_protocol: "scp"
+
+    # 3. Polling Settings
+    # How many times to check for status and how long to wait between checks.
+    status_check_retries: 120
+    status_check_delay: 60
+
+    # Start date: N days ago (calculated dynamically based on last_n_days)
+    start_date: "{{ '%Y-%m-%d' | strftime(ansible_date_time.epoch | int - 86400 * last_n_days) }}"
+    # End date: yesterday (always 1 day ago)
+    end_date: "{{ '%Y-%m-%d' | strftime(ansible_date_time.epoch | int - 86400) }}"
+
+    # 4. Success Indicators (from actual command output)
+    # Text to look for to confirm completion of each stage.
+    export_success_indicator: "completed"
+    # Push completion is detected by checking if the directory exists on remote host
+    # since fazbd-log-export status may not update correctly after push
+
+    # --- End of User Configuration ---
+
+  tasks:
+    - name: "Pre-flight Check: Ensure all placeholder values have been replaced"
+      ansible.builtin.fail:
+        msg: "Configuration error. Found unreplaced placeholder values (e.g., <PLACEHOLDER>). Please replace all placeholders before running."
+      when: "'<' in export_adom or '<' in export_log_type or '<' in push_host_port or '<' in push_user or '<' in push_directory"
+
+    - name: "Set current date for export directory naming"
+      ansible.builtin.set_fact:
+        export_date: "{{ ansible_date_time.date | replace('-', '') }}"
+
+    - name: "Display Configuration"
+      ansible.builtin.debug:
+        msg: |
+          Export Configuration:
+            adom: {{ export_adom }}
+            log_type: {{ export_log_type }}
+            device_type: {{ export_device_type }}
+            device_id: {{ export_device_id }}
+            start_date: {{ start_date }}
+            end_date: {{ end_date }}
+            format: {{ export_format }}
+          Push Configuration:
+            protocol: {{ push_protocol }}
+            host_port: {{ push_host_port }}
+            user: {{ push_user }}
+            directory: {{ push_directory }}
+          Export Date: {{ export_date }}
+
+    - name: "Pre-flight Check: Verify SSH access to remote host"
+      ansible.builtin.shell:
+        cmd: "sshpass -p '{{ push_password }}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }} 'echo \"SSH connection to {{ push_host_port }} successful\"'"
+      register: ssh_check
+      changed_when: false
+      ignore_errors: true
+      when: push_password | length > 0
+
+    - name: "Pre-flight Check: Verify SSH access to remote host (key-based)"
+      ansible.builtin.shell:
+        cmd: "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes {{ push_user }}@{{ push_host_port }} 'echo \"SSH connection to {{ push_host_port }} successful\"'"
+      register: ssh_check_key
+      changed_when: false
+      ignore_errors: true
+      when: push_password | length == 0
+
+    - name: "Fail if SSH pre-flight check failed"
+      ansible.builtin.fail:
+        msg: "Pre-flight check failed. Could not establish SSH connection to {{ push_user }}@{{ push_host_port }}. Please ensure SSH access is correctly configured."
+      when: (push_password | length > 0 and ssh_check.rc != 0) or (push_password | length == 0 and ssh_check_key.rc != 0)
+
+    - name: "1. Initialize Log Export and Extract Session ID"
+      ansible.builtin.shell: >
+        fazbd-log-export init -Y '{ "adom": "{{ export_adom }}", "log_type": "{{ export_log_type }}", "device_type": "{{ export_device_type }}", "device_ids": {{ export_device_id | to_json }}, "start_date": "{{ start_date }}", "end_date": "{{ end_date }}", "format": "{{ export_format }}" }'
+      register: init_result
+      changed_when: false
+      failed_when: "'Session ID:' not in init_result.stdout"
+
+    - name: "Display Init Result"
+      ansible.builtin.debug:
+        msg: "{{ init_result.stdout }}"
+
+    - name: "Set Session ID Fact"
+      ansible.builtin.set_fact:
+        export_session_id: "{{ init_result.stdout | regex_search('Session ID: ([a-zA-Z0-9]+)', '\\1') | first }}"
+
+    - name: "Display Session ID"
+      ansible.builtin.debug:
+        msg: "Session ID: {{ export_session_id }}"
+
+    - name: "2. Start Log Export Process"
+      ansible.builtin.shell: "nohup fazbd-log-export start {{ export_session_id }} --foreground > /tmp/export_{{ export_session_id }}.log 2>&1 &"
+      register: start_result
+      changed_when: false
+
+    - name: "Wait for export process to initialize"
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: "Display Start Result"
+      ansible.builtin.debug:
+        msg: "Export process started in background. Log file: /tmp/export_{{ export_session_id }}.log"
+
+    - name: "3. Wait for Log Export to Complete"
+      ansible.builtin.shell: "fazbd-log-export status {{ export_session_id }}"
+      register: export_status
+      until: "export_success_indicator in export_status.stdout and 'in progress' not in export_status.stdout"
+      retries: "{{ status_check_retries }}"
+      delay: "{{ status_check_delay }}"
+      changed_when: false
+      failed_when: false
+
+    - name: "Display Export Status"
+      ansible.builtin.debug:
+        msg: "{{ export_status.stdout }}"
+
+    - name: "Fail if Log Export did not complete"
+      ansible.builtin.fail:
+        msg: "Log export failed or timed out. Last status: {{ export_status.stdout }}"
+      when: "export_success_indicator not in export_status.stdout or 'in progress' in export_status.stdout"
+
+    - name: "4. Push Logs to Remote Server"
+      ansible.builtin.shell: >
+        nohup fazbd-log-export push {{ export_session_id }} '{ "protocol": "{{ push_protocol }}", "host_port": "{{ push_host_port }}", "user": "{{ push_user }}", "password": "{{ push_password }}", "directory": "{{ push_directory }}" }' --foreground > /tmp/push_{{ export_session_id }}.log 2>&1 &
+      register: push_result
+      changed_when: false
+
+    - name: "Wait for push process to initialize"
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: "Display Push Result"
+      ansible.builtin.debug:
+        msg: "Push process started in background. Log file: /tmp/push_{{ export_session_id }}.log"
+
+    - name: "5. Wait for Push to Complete by checking remote directory"
+      ansible.builtin.shell: >
+        sshpass -p '{{ push_password }}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }}
+        'test -d "{{ push_directory }}/fazbd-log-export-{{ export_session_id }}" && 
+         test -f "{{ push_directory }}/fazbd-log-export-{{ export_session_id }}/export_info.txt" && 
+         echo "push completed"'
+      register: push_check
+      until: "'push completed' in push_check.stdout"
+      retries: "{{ status_check_retries }}"
+      delay: "{{ status_check_delay }}"
+      changed_when: false
+      failed_when: false
+      when: push_password | length > 0
+
+    - name: "5. Wait for Push to Complete by checking remote directory (key-based)"
+      ansible.builtin.shell: >
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }}
+        'test -d "{{ push_directory }}/fazbd-log-export-{{ export_session_id }}" && 
+         test -f "{{ push_directory }}/fazbd-log-export-{{ export_session_id }}/export_info.txt" && 
+         echo "push completed"'
+      register: push_check_key
+      until: "'push completed' in push_check_key.stdout"
+      retries: "{{ status_check_retries }}"
+      delay: "{{ status_check_delay }}"
+      changed_when: false
+      failed_when: false
+      when: push_password | length == 0
+
+    - name: "Fail if Push did not complete"
+      ansible.builtin.fail:
+        msg: "Push to remote server failed or timed out."
+      when: (push_password | length > 0 and 'push completed' not in push_check.stdout | default('')) or 
+            (push_password | length == 0 and 'push completed' not in push_check_key.stdout | default(''))
+
+    - name: "6. Move export directory into date-based parent directory on remote host"
+      ansible.builtin.shell: >
+        sshpass -p '{{ push_password }}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }}
+        'cd {{ push_directory }} && 
+         if [ -d "fazbd-log-export-{{ export_session_id }}" ]; then
+           mkdir -p "fazbd-log-export-on-{{ export_date }}";
+           mv "fazbd-log-export-{{ export_session_id }}" "fazbd-log-export-on-{{ export_date }}/";
+           echo "Moved to fazbd-log-export-on-{{ export_date }}/fazbd-log-export-{{ export_session_id }}";
+         else
+           echo "Source directory not found";
+         fi'
+      register: move_result
+      changed_when: "'Moved' in move_result.stdout"
+      when: push_password | length > 0
+
+    - name: "6. Move export directory into date-based parent directory on remote host (key-based)"
+      ansible.builtin.shell: >
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }}
+        'cd {{ push_directory }} && 
+         if [ -d "fazbd-log-export-{{ export_session_id }}" ]; then
+           mkdir -p "fazbd-log-export-on-{{ export_date }}";
+           mv "fazbd-log-export-{{ export_session_id }}" "fazbd-log-export-on-{{ export_date }}/";
+           echo "Moved to fazbd-log-export-on-{{ export_date }}/fazbd-log-export-{{ export_session_id }}";
+         else
+           echo "Source directory not found";
+         fi'
+      register: move_result_key
+      changed_when: "'Moved' in move_result_key.stdout"
+      when: push_password | length == 0
+
+    - name: "Display Move Result"
+      ansible.builtin.debug:
+        msg: "{{ move_result.stdout | default(move_result_key.stdout | default('N/A')) }}"
+
+    - name: "7. Verify Files on Remote Host"
+      ansible.builtin.shell: "sshpass -p '{{ push_password }}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }} 'ls -lR {{ push_directory }}/fazbd-log-export-on-{{ export_date }}'"
+      register: remote_files
+      changed_when: false
+      ignore_errors: true
+      when: push_password | length > 0
+
+    - name: "7. Verify Files on Remote Host (key-based)"
+      ansible.builtin.shell: "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ push_user }}@{{ push_host_port }} 'ls -lR {{ push_directory }}/fazbd-log-export-on-{{ export_date }}'"
+      register: remote_files_key
+      changed_when: false
+      ignore_errors: true
+      when: push_password | length == 0
+
+    - name: "Display Remote File Listing"
+      ansible.builtin.debug:
+        msg: "Files on remote host {{ push_host_port }}:\n{{ remote_files.stdout | default(remote_files_key.stdout | default('N/A')) }}"
+
+    - name: "8. Close and Clean Up Log Export Session"
+      ansible.builtin.shell: "fazbd-log-export force-stop {{ export_session_id }} 2>/dev/null || echo Y | fazbd-log-export close {{ export_session_id }}"
+      register: close_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: "Display Close Result"
+      ansible.builtin.debug:
+        msg: "{{ close_result.stdout }}"
+
+    - name: "Clean up temporary log files"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/export_{{ export_session_id }}.log"
+        - "/tmp/push_{{ export_session_id }}.log"
+      ignore_errors: true
+
+    - name: "Export Complete"
+      ansible.builtin.debug:
+        msg: |
+          Export and push completed successfully!
+          Session {{ export_session_id }} has been closed.
+          Files exported to: {{ push_host_port }}:{{ push_directory }}/fazbd-log-export-on-{{ export_date }}

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is used to patch unbalanced facet tables in Impala.
+# Refer to mantis 1236915.
+# It is required for the FAZBD versions of v7.4.5+ and v7.6.2+
+
 # Function to list all storage facet results
 list_all() {
   echo "Listing all storage facet results..."
