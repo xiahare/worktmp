@@ -1,82 +1,82 @@
-
-import toga
-from toga.style import Pack
-from toga.style.pack import COLUMN, ROW
+import tkinter as tk
+from tkinter import scrolledtext
 import requests
 import json
-import threading
 
-class MyAIFirstAgent(toga.App):
-    def startup(self):
-        # Main container
-        main_box = toga.Box(style=Pack(direction=COLUMN, margin=10))
+class ChatApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
-        # Chat display area
-        self.chat_box = toga.MultilineTextInput(readonly=True, style=Pack(flex=1))
-
-        # Input area
-        input_box = toga.Box(style=Pack(direction=ROW, margin_top=10))
-        self.text_input = toga.TextInput(
-            style=Pack(flex=1, margin_right=10),
-            on_confirm=self.handle_send
-        )
-        self.send_button = toga.Button('Send', on_press=self.handle_send, style=Pack(width=80))
-        
-        input_box.add(self.text_input)
-        input_box.add(self.send_button)
-
-        main_box.add(self.chat_box)
-        main_box.add(input_box)
-
-        self.main_window = toga.MainWindow(title=self.formal_name)
-        self.main_window.content = main_box
-        self.main_window.show()
+        self.title("Qwen Chat")
+        self.geometry("600x400")
 
         self.chat_history = []
 
-    def handle_send(self, widget):
-        user_message = self.text_input.value
+        self.chat_box = scrolledtext.ScrolledText(self, wrap=tk.WORD)
+        self.chat_box.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+        self.chat_box.config(state=tk.DISABLED)
+
+        self.input_frame = tk.Frame(self)
+        self.input_frame.pack(padx=10, pady=10, fill=tk.X)
+
+        self.user_input = tk.Entry(self.input_frame)
+        self.user_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.user_input.bind("<Return>", self.send_message)
+
+        self.send_button = tk.Button(self.input_frame, text="Send", command=self.send_message)
+        self.send_button.pack(side=tk.RIGHT)
+
+    def send_message(self, event=None):
+        user_message = self.user_input.get()
         if not user_message:
             return
 
-        # Add user message to chat history and display it
+        self.append_message("You", user_message)
         self.chat_history.append({"role": "user", "content": user_message})
-        self.chat_box.value += f"You: {user_message}\n\n"
-        self.text_input.value = ""
-        
-        # Disable button to prevent multiple sends
-        self.send_button.enabled = False
+        self.user_input.delete(0, tk.END)
 
-        # Run the network request in a background thread
-        threading.Thread(target=self.get_bot_response).start()
+        self.get_bot_response()
 
     def get_bot_response(self):
-        bot_message_full = ""
         try:
             response = requests.post(
                 "http://us.fairyao.site/chat",
-                json={"messages": self.chat_history}
+                json={"messages": self.chat_history},
+                stream=True
             )
-            response.raise_for_status() # Raise an exception for bad status codes
 
-            response_data = response.json()
-            bot_message_full = response_data.get("response", "An empty response was received.")
+            bot_message = ""
+            for chunk in response.iter_content(chunk_size=None):
+                if chunk:
+                    try:
+                        json_chunk = json.loads(chunk)
+                        bot_message += json_chunk.get("response", "")
+                        self.update_bot_message(bot_message)
+                    except json.JSONDecodeError:
+                        pass # Ignore non-JSON chunks
             
-            self.chat_history.append({"role": "assistant", "content": bot_message_full})
+            self.chat_history.append({"role": "assistant", "content": bot_message})
 
         except requests.exceptions.RequestException as e:
-            bot_message_full = f"Error: Could not connect to the server. {e}"
-        except Exception as e:
-            bot_message_full = f"An unexpected error occurred: {e}"
+            self.append_message("Bot", f"Error: {e}")
 
-        # Schedule the UI update on the main thread
-        self.loop.call_soon_threadsafe(self.update_ui_with_response, bot_message_full)
+    def append_message(self, sender, message):
+        self.chat_box.config(state=tk.NORMAL)
+        self.chat_box.insert(tk.END, f"{sender}: {message}\n\n")
+        self.chat_box.config(state=tk.DISABLED)
+        self.chat_box.see(tk.END)
 
-    def update_ui_with_response(self, message):
-        self.chat_box.value += f"Bot: {message}\n\n"
-        self.chat_box.scroll_to_bottom()
-        self.send_button.enabled = True
+    def update_bot_message(self, message):
+        self.chat_box.config(state=tk.NORMAL)
+        # Find the start of the last bot message
+        last_bot_message_start = self.chat_box.search("Bot: ", "1.0", stopindex=tk.END, backwards=True)
+        if last_bot_message_start:
+            # Delete the old bot message
+            self.chat_box.delete(last_bot_message_start, tk.END)
+        self.chat_box.insert(tk.END, f"Bot: {message}\n\n")
+        self.chat_box.config(state=tk.DISABLED)
+        self.chat_box.see(tk.END)
 
-
-def main():
-    return MyAIFirstAgent('My AI First Agent', 'org.beeware.myaifirstagent')
+if __name__ == "__main__":
+    app = ChatApp()
+    app.mainloop()
