@@ -1,0 +1,14 @@
+# Python
+*.pyc
+__pycache__/
+
+# Temporary files
+*.tmp
+*~
+
+# Our temporary app files
+combined_app.py
+final_universal_app.py
+mac_app_server.py
+temp_server_app.py
+universal_app.py
