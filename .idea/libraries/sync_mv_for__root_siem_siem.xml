@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="sync_mv_for__root_siem_siem">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/starrocks/sr_mv/sync_mv_for__root_siem_siem.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
